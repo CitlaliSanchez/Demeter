@@ -1,0 +1,66 @@
+table demeter
+
+-- 1. Tabla: Agricultor
+CREATE TABLE Agricultor (
+    id INT PRIMARY KEY IDENTITY,
+    nombre VARCHAR(45) NOT NULL,
+    area_id INT NOT NULL,
+    FOREIGN KEY (area_id) REFERENCES Area(id)
+);
+
+-- 2. Tabla: Area
+CREATE TABLE Area (
+    id INT PRIMARY KEY IDENTITY,
+    nombre VARCHAR(50) NOT NULL
+);
+
+-- 3. Tabla: Cultivo
+CREATE TABLE Cultivo (
+    id INT PRIMARY KEY IDENTITY,
+    nombre VARCHAR(50) NOT NULL,
+    tipo VARCHAR(30),
+    fecha_inicio DATE,
+    area_id INT,
+    FOREIGN KEY (area_id) REFERENCES Area(id)
+);
+
+-- 4. Tabla: Sensor
+CREATE TABLE Sensor (
+    id INT PRIMARY KEY IDENTITY,
+    tipo VARCHAR(30) NOT NULL, -- pH, EC, Temperatura, Nivel
+    descripcion VARCHAR(100)
+);
+
+-- 5. Tabla: LecturaSensor
+CREATE TABLE LecturaSensor (
+    id INT PRIMARY KEY IDENTITY,
+    cultivo_id INT,
+    sensor_id INT,
+    valor FLOAT NOT NULL,
+    fecha_hora DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (cultivo_id) REFERENCES Cultivo(id),
+    FOREIGN KEY (sensor_id) REFERENCES Sensor(id)
+);
+
+-- 6. Tabla: UmbralAlerta
+CREATE TABLE UmbralAlerta (
+    id INT PRIMARY KEY IDENTITY,
+    sensor_id INT,
+    valor_min FLOAT,
+    valor_max FLOAT,
+    FOREIGN KEY (sensor_id) REFERENCES Sensor(id)
+);
+
+-- 7. CREATE TABLE Reporte (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    cultivo_id INT NOT NULL,
+    agricultor_id INT NOT NULL,
+    remote_file_id VARCHAR(255) NOT NULL,          -- fileId retornado por Google Drive API
+    remote_view_link VARCHAR(255),                 -- enlace para vista web
+    remote_download_link VARCHAR(255),             -- enlace de descarga directa
+    tipo ENUM('sostenibilidad','eficiencia','custom') NOT NULL,
+    generado_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cultivo_id) REFERENCES Cultivo(id),
+    FOREIGN KEY (agricultor_id) REFERENCES Agricultor(id),
+    INDEX(idx_reporte_time) (generado_at)
+);
