@@ -15,11 +15,17 @@ export default function AlertEmergente({ visible, onClose, mensaje }) {
     <Modal transparent visible={visible} animationType="slide">
       <View style={styles.overlay}>
         <View style={styles.modal}>
+          {/* Logo principal */}
           <Image
             source={require('../assets/logo.png')}
             style={styles.logo}
           />
-          <Ionicons name="warning" size={40} color="#fff" />
+          {/* Imagen adicional (dimitri-06.png) */}
+          <Image
+            source={require('../assets/dimitri-06.png')}
+            style={styles.avatar}
+          />
+          <Ionicons name="warning" size={40} color="#fff" style={{ marginBottom: 8 }} />
           <Text style={styles.mensaje}>{mensaje}</Text>
           <TouchableOpacity style={styles.button} onPress={onClose}>
             <Text style={styles.buttonText}>Entendido</Text>
@@ -45,10 +51,19 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   logo: {
+    width: 200,
+    height: 60,
+    resizeMode: 'contain',
+    marginBottom: 12,
+  },
+  avatar: {
     width: 80,
     height: 80,
-    marginBottom: 16,
-    resizeMode: 'contain',
+    borderRadius: 40,
+    marginBottom: 12,
+    resizeMode: 'cover',
+    backgroundColor: 'transparent',
+
   },
   mensaje: {
     color: '#fff',

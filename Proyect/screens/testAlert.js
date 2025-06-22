@@ -41,7 +41,7 @@ export default function TestAlert() {
       <AlertEmergente
         visible={visible}
         onClose={() => setVisible(false)}
-        mensaje="¡CUIDADO POSIBLE PLAGA EN ÁREA 51!"
+        mensaje="¡Revisa Ph de Area A!"
       />
     </View>
   );

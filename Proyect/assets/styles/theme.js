@@ -8,7 +8,7 @@ export const colors = {
   text: '#333333',
   background: '#FFFFFF',
   // lo incluyo por las alertas
-  danger: '#D9534F',
+  danger: '#A52019',
 };
 
 export const fonts = {
