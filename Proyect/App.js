@@ -1,15 +1,5 @@
-
-import TestAlert from './screens/testAlert';
-import AppNavigator from './AppNavigator';
-
-export default function App() {
-  return <TestAlert />;
-  return <AppNavigator />;
-}
-
-/*
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import {
   Poppins_400Regular,
@@ -17,13 +7,8 @@ import {
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
 
+import AppNavigator from './AppNavigator';
 import { colors, fonts, fontSizes } from './assets/styles/theme';
-
-import TestAlert from './screens/testAlert';
-
-export default function App() {
-  return <TestAlert />;
-}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -41,13 +26,10 @@ export default function App() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        <Text style={styles.bold}>Demeter</Text>
-        <Text style={styles.regular}> en proceso!</Text>
-      </Text>
+    <>
+      <AppNavigator />
       <StatusBar style="auto" />
-    </View>
+    </>
   );
 }
 
@@ -63,15 +45,4 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     color: colors.text,
   },
-  title: {
-    fontSize: fontSizes.lg,
-    color: colors.clay,
-  },
-  bold: {
-    fontFamily: fonts.bold,
-  },
-  regular: {
-    fontFamily: fonts.regular,
-  },
 });
-*/

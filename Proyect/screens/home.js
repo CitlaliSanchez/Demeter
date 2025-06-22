@@ -1,18 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-// Simularemos conexión y datos al inicio
 export default function HomeScreen() {
   const [connected, setConnected] = useState(false);
   const [readings, setReadings] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
-    // Simular conexión MQTT después de 2 segundos
     const timeout = setTimeout(() => {
       setConnected(true);
     }, 2000);
 
-    // Simular llegada de lecturas
     const simulatedReadings = Array.from({ length: 20 }, (_, i) => ({
       id: i.toString(),
       timestamp: new Date(Date.now() - i * 60000).toLocaleTimeString(),
@@ -41,6 +47,13 @@ export default function HomeScreen() {
       <Text style={[styles.status, { color: connected ? 'green' : 'red' }]}>
         Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
       </Text>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('TestAlert')}
+      >
+        <Text style={styles.buttonText}>Ir a TestAlert</Text>
+      </TouchableOpacity>
 
       <Text style={styles.title}>Últimas Lecturas</Text>
       <FlatList
@@ -77,5 +90,16 @@ const styles = StyleSheet.create({
   timestamp: {
     fontWeight: 'bold',
     marginBottom: 5,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
