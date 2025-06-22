@@ -55,7 +55,7 @@ CREATE TABLE UmbralAlerta (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     cultivo_id INT NOT NULL,
     agricultor_id INT NOT NULL,
-    remote_file_id VARCHAR(255) NOT NULL,          -- fileId retornado por Google Drive API
+    remote_file_id VARCHAR(255),          -- fileId retornado por Google Drive API
     remote_view_link VARCHAR(255),                 -- enlace para vista web
     remote_download_link VARCHAR(255),             -- enlace de descarga directa
     tipo ENUM('sostenibilidad','eficiencia','custom') NOT NULL,
