@@ -1,7 +1,9 @@
 import TestAlert from './screens/testAlert';
+import AppNavigator from './AppNavigator';
 
 export default function App() {
   return <TestAlert />;
+  return <AppNavigator />;
 }
 
 /*
