@@ -1,3 +1,10 @@
+import TestAlert from './screens/testAlert';
+
+export default function App() {
+  return <TestAlert />;
+}
+
+/*
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { useFonts } from 'expo-font';
@@ -8,6 +15,12 @@ import {
 } from '@expo-google-fonts/poppins';
 
 import { colors, fonts, fontSizes } from './assets/styles/theme';
+
+import TestAlert from './screens/testAlert';
+
+export default function App() {
+  return <TestAlert />;
+}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -58,3 +71,4 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
   },
 });
+*/
