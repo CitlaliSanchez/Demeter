@@ -54,6 +54,12 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonText}>Ir a TestAlert</Text>
       </TouchableOpacity>
+<TouchableOpacity
+  style={[styles.button, { backgroundColor: '#28a745' }]}
+  onPress={() => navigation.navigate('ReportScreen')}
+>
+  <Text style={styles.buttonText}>Ir a Reporte</Text>
+</TouchableOpacity>
 
       <Text style={styles.title}>Últimas Lecturas</Text>
       <FlatList

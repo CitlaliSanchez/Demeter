@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import login from './screens/login';
 import home from './screens/home';
 import TestAlert from './screens/testAlert';
+import ReportScreen from './screens/ReportScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +28,12 @@ export default function AppNavigator() {
           component={TestAlert}
           options={{ title: 'Alerta de Prueba' }}
         />
+<Stack.Screen
+  name="ReportScreen"
+  component={ReportScreen}
+  options={{ title: 'Reporte' }}
+/>
+
       </Stack.Navigator>
     </NavigationContainer>
   );
