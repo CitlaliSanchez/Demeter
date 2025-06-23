@@ -7,7 +7,7 @@ import {
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
 
-import AppNavigator from './AppNavigator';
+import AppNavigator from './navigation/AppNavigator';
 import { colors, fonts, fontSizes } from './assets/styles/theme';
 
 export default function App() {
