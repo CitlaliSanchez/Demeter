@@ -1,176 +1,152 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Modal,
   Image,
+  ImageBackground,
   ScrollView,
 } from 'react-native';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
-const areasSimuladas = [
-  {
-    id: 'A',
-    nombre: 'Área A',
-    estado: 'Exceso de agua',
-    ph: 6.3,
-    temperatura: 25.1,
-    nivelAgua: '90%',
-  },
-  {
-    id: 'B',
-    nombre: 'Área B',
-    estado: 'pH fuera de rango',
-    ph: 7.5,
-    temperatura: 24.3,
-    nivelAgua: '70%',
-  },
-  {
-    id: 'C',
-    nombre: 'Área C',
-    estado: 'Óptimo',
-    ph: 6.6,
-    temperatura: 23.8,
-    nivelAgua: '75%',
-  },
-];
+const estados = ['Óptimo', 'pH fuera de rango', 'Exceso de agua'];
 
-// Imagen y color por estado
-const obtenerColorYAvatar = (estado) => {
-  const estadoLower = estado.toLowerCase();
-  if (estadoLower.includes('óptimo')) {
-    return { fondo: colors.lime, imagen: require('../assets/dimitri-02.png') };
-  } else if (estadoLower.includes('ph')) {
-    return { fondo: colors.olive, imagen: require('../assets/dimitri-04.png') };
-  } else if (estadoLower.includes('agua')) {
-    return { fondo: colors.danger, imagen: require('../assets/dimitri-06.png') };
-  } else {
-    return { fondo: colors.clay, imagen: require('../assets/dimitri-06.png') };
+const generarArea = (id) => {
+  const ph = (5.5 + Math.random() * 2).toFixed(2); // 5.5 a 7.5
+  const temperatura = (21 + Math.random() * 9).toFixed(1); // 21 a 30 °C
+  const nivel = Math.floor(Math.random() * 51) + 50; // 50% a 100%
+  let estado = 'Óptimo';
+
+  if (ph < 5.5 || ph > 7.0) estado = 'pH fuera de rango';
+  if (nivel < 65) estado = 'Falta de agua';
+  if (nivel > 90) estado = 'Exceso de agua';
+  if (temperatura > 28) estado = 'Temperatura elevada';
+
+  return {
+    id,
+    nombre: `Área ${id}`,
+    estado,
+    ph,
+    temperatura,
+    nivelAgua: `${nivel}%`,
+  };
+};
+
+const obtenerEstilosEstado = ({ ph, temperatura, nivelAgua }) => {
+  const agua = parseInt(nivelAgua);
+  const phNum = parseFloat(ph);
+  const temp = parseFloat(temperatura);
+
+  if (phNum < 5.5 || phNum > 7.0 || agua < 65 || agua > 90) {
+    return { color: '#e53935', imagen: require('../assets/dimitri-06.png') }; // rojo
   }
+
+  if (temp > 28) {
+    return { color: '#388e3c', imagen: require('../assets/dimitri-05.png') };
+  }
+
+  return { color: '#81c784', imagen: require('../assets/dimitri-02.png') };
 };
 
 export default function AreaCultivos() {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [areaSeleccionada, setAreaSeleccionada] = useState(null);
+  const [areas, setAreas] = useState([]);
 
-  const abrirDetalle = (area) => {
-    setAreaSeleccionada(area);
-    setModalVisible(true);
-  };
+  useEffect(() => {
+    const nuevasAreas = ['A', 'B', 'C', 'D'].map((id) => generarArea(id));
+    setAreas(nuevasAreas);
+  }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Vista del Cultivo</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Estado de Áreas</Text>
 
-      <View style={styles.field}>
-        {areasSimuladas.map((area) => {
-          const { fondo, imagen } = obtenerColorYAvatar(area.estado);
+      {areas.map((area) => {
+const { color, imagen } = obtenerEstilosEstado(area);
 
-          return (
-            <TouchableOpacity
-              key={area.id}
-              onPress={() => abrirDetalle(area)}
-              style={[styles.areaContainer, { backgroundColor: fondo }]}
-            >
-              <Image source={imagen} style={styles.areaImage} />
-              <Text style={styles.areaText}>{area.nombre}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+        return (
+          <View key={area.id} style={[styles.areaBoxWrapper]}>
+<ImageBackground
+  source={require('../assets/plants.jpg')}
+  resizeMode="contain"
+  imageStyle={{
+    borderRadius: 16,
+    opacity: 0.3,
+  }}
+  style={[styles.areaBox, { backgroundColor: color }]}
+>
+              <View style={styles.leftSection}>
+                <Image source={imagen} style={styles.avatar} />
+                <View>
+                  <Text style={styles.areaNombre}>{area.nombre}</Text>
+                  <Text style={styles.estado}>{area.estado}</Text>
+                </View>
+              </View>
 
-      {/* Modal Detalles */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{areaSeleccionada?.nombre}</Text>
-            <Text>Estado: {areaSeleccionada?.estado}</Text>
-            <Text>Temperatura: {areaSeleccionada?.temperatura} °C</Text>
-            <Text>pH: {areaSeleccionada?.ph}</Text>
-            <Text>Nivel de Agua: {areaSeleccionada?.nivelAgua}</Text>
-
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.modalButtonText}>Cerrar</Text>
-            </TouchableOpacity>
+              <View style={styles.rightSection}>
+                <Text style={styles.dataText}>Temp: {area.temperatura} °C</Text>
+                <Text style={styles.dataText}>pH: {area.ph}</Text>
+                <Text style={styles.dataText}>Water: {area.nivelAgua}</Text>
+              </View>
+            </ImageBackground>
           </View>
-        </View>
-      </Modal>
+        );
+      })}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
     backgroundColor: colors.background,
-    alignItems: 'center',
+    padding: 16,
   },
   title: {
     fontSize: fontSizes.xl,
     fontFamily: fonts.bold,
     color: colors.forest,
     marginBottom: 20,
-  },
-  field: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  areaContainer: {
-    width: 140,
-    height: 160,
-    borderRadius: 16,
-    margin: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    elevation: 3,
-  },
-  areaImage: {
-    width: 80,
-    height: 80,
-    resizeMode: 'contain',
-    marginBottom: 10,
-  },
-  areaText: {
-    fontSize: fontSizes.md,
-    fontFamily: fonts.medium,
-    color: colors.white,
     textAlign: 'center',
   },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: colors.white,
-    padding: 24,
+  areaBoxWrapper: {
+    marginBottom: 16,
     borderRadius: 16,
-    width: '80%',
+    overflow: 'hidden',
+  },
+  areaBox: {
+    flexDirection: 'row',
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  modalTitle: {
-    fontSize: fontSizes.lg,
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  rightSection: {
+    alignItems: 'flex-end',
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
+    borderRadius: 30,
+  },
+  areaNombre: {
     fontFamily: fonts.bold,
-    marginBottom: 12,
-  },
-  modalButton: {
-    marginTop: 20,
-    backgroundColor: colors.clay,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  modalButtonText: {
+    fontSize: fontSizes.lg,
     color: colors.white,
+  },
+  estado: {
     fontFamily: fonts.medium,
+    fontSize: fontSizes.md,
+    color: colors.white,
+  },
+  dataText: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.sm,
+    color: colors.white,
   },
 });
