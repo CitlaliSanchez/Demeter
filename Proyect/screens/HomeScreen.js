@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, Image} from 'react-native';
 
 // Simularemos conexión y datos al inicio
 export default function HomeScreen() {
@@ -22,6 +22,7 @@ export default function HomeScreen() {
       nivel: `${Math.floor(Math.random() * 100)}%`,
     }));
     setReadings(simulatedReadings);
+
     return () => clearTimeout(timeout);
   }, []);
 
@@ -38,14 +39,15 @@ export default function HomeScreen() {
   return (
     
     <SafeAreaView style={styles.container}>
-      <Text style={[styles.status, { color: connected ? 'green' : 'red' }]}>
-        Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
-      </Text>
-
       <View style={styles.banner}>
+      <Image source={require('../assets/dimitri-02.png')}
+            style={styles.logo}/>
       <Text>Banner</Text>
       </View>
 
+      <Text style={[styles.status, { color: connected ? 'green' : 'red' }]}>
+        Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
+      </Text>
       <Text style={styles.title}>Últimas Lecturas</Text>
       <FlatList
         data={readings}
@@ -64,7 +66,7 @@ const styles = StyleSheet.create({
     paddingTop: 55,
   },
     banner: {
-    backgroundColor: '#B9F6CA',
+    backgroundColor: '#FFF8E1',
     padding: 10,
     borderRadius: 8,
     marginBottom: 10,
@@ -88,5 +90,11 @@ const styles = StyleSheet.create({
   timestamp: {
     fontWeight: 'bold',
     marginBottom: 5,
+  },
+  logo: {
+    width: 400,
+    height: 80,
+    resizeMode: 'contain',
+    marginBottom: 12,
   },
 });
