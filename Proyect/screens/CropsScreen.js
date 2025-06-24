@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
 
 // Simularemos conexión y datos al inicio
-export default function ReportScreen() {
+export default function CropsScreen() {
 
 
   return (
     <View>
-        <Text>Report</Text>
+        <Text>Crops</Text>
     </View>
   );
 }

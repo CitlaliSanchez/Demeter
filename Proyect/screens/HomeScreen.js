@@ -36,10 +36,15 @@ export default function HomeScreen() {
   );
 
   return (
+    
     <SafeAreaView style={styles.container}>
       <Text style={[styles.status, { color: connected ? 'green' : 'red' }]}>
         Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
       </Text>
+
+      <View style={styles.banner}>
+      <Text>Banner</Text>
+      </View>
 
       <Text style={styles.title}>Últimas Lecturas</Text>
       <FlatList
@@ -56,6 +61,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#fff',
+    paddingTop: 55,
+  },
+    banner: {
+    backgroundColor: '#B9F6CA',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   status: {
     fontSize: 16,
