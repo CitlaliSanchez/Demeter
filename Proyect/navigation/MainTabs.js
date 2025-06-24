@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import AreaCultivos from '../screens/AreaCultivos';
 
 const Tab = createBottomTabNavigator();
 
@@ -36,6 +37,7 @@ export default function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
+      <Tab.Screen name="AreaCultivos" component={AreaCultivos} />
     </Tab.Navigator>
   );//cambio de las pantallas, el nombre es el nombre correcto del archivo 
 }

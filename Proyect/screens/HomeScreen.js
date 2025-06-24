@@ -22,7 +22,6 @@ export default function HomeScreen() {
       nivel: `${Math.floor(Math.random() * 100)}%`,
     }));
     setReadings(simulatedReadings);
-
     return () => clearTimeout(timeout);
   }, []);
 
