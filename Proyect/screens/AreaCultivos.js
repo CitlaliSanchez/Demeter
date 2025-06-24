@@ -9,83 +9,81 @@ import {
 } from 'react-native';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
-const estados = ['Óptimo', 'pH fuera de rango', 'Exceso de agua'];
+const generateArea = (id) => {
+  const ph = (5.5 + Math.random() * 2).toFixed(2);
+  const temperature = (21 + Math.random() * 9).toFixed(1);
+  const level = Math.floor(Math.random() * 51) + 50;
+  let status = 'Optimal';
 
-const generarArea = (id) => {
-  const ph = (5.5 + Math.random() * 2).toFixed(2); // 5.5 a 7.5
-  const temperatura = (21 + Math.random() * 9).toFixed(1); // 21 a 30 °C
-  const nivel = Math.floor(Math.random() * 51) + 50; // 50% a 100%
-  let estado = 'Óptimo';
-
-  if (ph < 5.5 || ph > 7.0) estado = 'pH fuera de rango';
-  if (nivel < 65) estado = 'Falta de agua';
-  if (nivel > 90) estado = 'Exceso de agua';
-  if (temperatura > 28) estado = 'Temperatura elevada';
+  if (ph < 5.5 || ph > 7.0) status = 'pH Issue';
+  if (level < 65) status = 'Low water level';
+  if (level > 90) status = 'Excess water';
+  if (temperature > 28) status = 'High Temp';
 
   return {
     id,
-    nombre: `Área ${id}`,
-    estado,
+    name: `Area ${id}`,
+    status,
     ph,
-    temperatura,
-    nivelAgua: `${nivel}%`,
+    temperature,
+    waterLevel: `${level}%`,
   };
 };
 
-const obtenerEstilosEstado = ({ ph, temperatura, nivelAgua }) => {
-  const agua = parseInt(nivelAgua);
+const getStyleByStatus = ({ ph, temperature, waterLevel }) => {
+  const water = parseInt(waterLevel);
   const phNum = parseFloat(ph);
-  const temp = parseFloat(temperatura);
+  const temp = parseFloat(temperature);
 
-  if (phNum < 5.5 || phNum > 7.0 || agua < 65 || agua > 90) {
-    return { color: '#e53935', imagen: require('../assets/dimitri-06.png') }; // rojo
+  if (phNum < 5.5 || phNum > 7.0 || water < 65 || water > 90) {
+    return { color: '#920000', image: require('../assets/dimitri-06.png') };
   }
 
   if (temp > 28) {
-    return { color: '#388e3c', imagen: require('../assets/dimitri-05.png') };
+    return { color: '#388e3c', image: require('../assets/dimitri-05.png') };
   }
 
-  return { color: '#81c784', imagen: require('../assets/dimitri-02.png') };
+  return { color: '#006600', image: require('../assets/dimitri-02.png') };
 };
 
-export default function AreaCultivos() {
+export default function CropAreas() {
   const [areas, setAreas] = useState([]);
 
   useEffect(() => {
-    const nuevasAreas = ['A', 'B', 'C', 'D'].map((id) => generarArea(id));
-    setAreas(nuevasAreas);
+    const newAreas = ['A', 'B', 'C', 'D'].map((id) => generateArea(id));
+    setAreas(newAreas);
   }, []);
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Estado de Áreas</Text>
+      <Text style={styles.title}>Area Status</Text>
 
       {areas.map((area) => {
-const { color, imagen } = obtenerEstilosEstado(area);
+        const { color, image } = getStyleByStatus(area);
 
         return (
-          <View key={area.id} style={[styles.areaBoxWrapper]}>
-<ImageBackground
-  source={require('../assets/plants.jpg')}
-  resizeMode="contain"
-  imageStyle={{
-    borderRadius: 16,
-    opacity: 0.3,
-  }}
-  style={[styles.areaBox, { backgroundColor: color }]}
->
+          <View key={area.id} style={styles.areaBoxWrapper}>
+            <ImageBackground
+              source={require('../assets/plants.jpg')}
+              resizeMode="cover"
+              imageStyle={{
+                borderRadius: 16,
+                opacity: 0.3,
+              }}
+              style={[styles.areaBox, { backgroundColor: color }]}
+            >
               <View style={styles.leftSection}>
-                <Image source={imagen} style={styles.avatar} />
+                <Image source={image} style={styles.avatar} />
                 <View>
-                  <Text style={styles.areaNombre}>{area.nombre}</Text>
-                  <Text style={styles.estado}>{area.estado}</Text>
+                  <Text style={styles.areaName}>{area.name}</Text>
+                  <Text style={styles.status}>{area.status}</Text>
                 </View>
               </View>
 
               <View style={styles.rightSection}>
-                <Text style={styles.dataText}>Temp: {area.temperatura} °C</Text>
+                <Text style={styles.dataText}>Temp: {area.temperature} °C</Text>
                 <Text style={styles.dataText}>pH: {area.ph}</Text>
-                <Text style={styles.dataText}>Water: {area.nivelAgua}</Text>
+                <Text style={styles.dataText}>Water: {area.waterLevel}</Text>
               </View>
             </ImageBackground>
           </View>
@@ -134,12 +132,12 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     borderRadius: 30,
   },
-  areaNombre: {
+  areaName: {
     fontFamily: fonts.bold,
     fontSize: fontSizes.lg,
     color: colors.white,
   },
-  estado: {
+  status: {
     fontFamily: fonts.medium,
     fontSize: fontSizes.md,
     color: colors.white,
