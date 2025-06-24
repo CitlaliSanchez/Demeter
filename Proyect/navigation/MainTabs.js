@@ -32,8 +32,8 @@ export default function MainTabs() {
 
           return <FontAwesome5 name={iconName} size={24} color={color} />;
         },
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#547326',
+        tabBarInactiveTintColor: 'darkGreen',
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
