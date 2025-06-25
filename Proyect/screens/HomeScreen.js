@@ -23,7 +23,10 @@ export default function HomeScreen() {
     }));
     setReadings(simulatedReadings);
 
-    return () => clearTimeout(timeout);
+const alerta = simulatedReadings.some(r => parseFloat(r.ph) < 5.5 || parseFloat(r.ph) > 7.0);
+if (alerta) {
+  console.warn('¡Alerta de pH fuera de rango!');
+}
   }, []);
 
   const renderItem = ({ item }) => (

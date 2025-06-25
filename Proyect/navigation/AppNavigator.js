@@ -7,7 +7,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Login from '../screens/LoginScreen';
 import MainTabs from '../navigation/MainTabs';
 import ReportScreen from '../screens/ReportScreen';
-import AreaCultivos from '../screens/AreaCultivos';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,11 +27,6 @@ export default function AppNavigator() {
         <Stack.Screen
           name="ReportScreen" //aqui se manda a la navegacion principal para el menu y que acceda a los screens
           component={ReportScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="AreaCultivos"
-          component={AreaCultivos}
           options={{ headerShown: false }}
         />
 
