@@ -1,15 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Image } from 'react-native';
 import { useState } from 'react';
-
-import mainNav from '../navigation/MainTabs'
+import mainNav from '../navigation/MainTabs';
+import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    // Aquí puedes poner tu lógica de autenticación pero aun se quedara asi, aun sin login completo//
     if (username === 'admin' && password === '1234') {
       alert('Login exitoso');
     } else {
@@ -18,31 +17,40 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-   //Titulo e imagen del login, debajo los inputs de usuario y contraseña
-   <View style={styles.container}>
-      <Text style={styles.title}>LOGIN</Text>
-       <Image
-            source={require('../assets/dimitri-01.png')}
-            style={styles.logo}
-          />
+    <View style={styles.container}>
+      <Image source={require('../assets/logo.png')} style={styles.header}></Image>
+      <Text style={styles.subheader}>Inicia sesión en Demeter :)</Text>
+
+      <Image
+        source={require('../assets/dimitri-01.png')}
+        style={styles.logo}
+      />
 
       <TextInput
         style={styles.input}
         placeholder="User"
+        placeholderTextColor={colors.text}
         value={username}
         onChangeText={setUsername}
       />
+
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor={colors.text}
         secureTextEntry={true}
         value={password}
         onChangeText={setPassword}
       />
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate(mainNav)}>
-        <Text style={styles.buttonText}>Log in</Text>
+        <Text style={styles.buttonText}>LOG IN</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity>
+        <Text style={styles.forgot}>¿Olvidaste tu contraseña? <Text style={styles.click}>Haz clic aquí</Text></Text>
+      </TouchableOpacity>
+
       <StatusBar style="auto" />
     </View>
   );
@@ -51,39 +59,62 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
+    backgroundColor: '#dff5e1',
   },
-  title: {
-    fontSize: 32,
-    marginBottom: 30,
-    fontWeight: 'bold',
+  header: {
+    color: colors.olive,
+    marginBottom: 4,
+    width:110,
+    height:60,
+  },
+  subheader: {
+    fontSize: fontSizes.md,
+    fontFamily: fonts.regular,
+    color: colors.text,
+    marginBottom: 20,
+  },
+  logo: {
+    width: 180,
+    height: 180,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   input: {
     width: '100%',
+    backgroundColor: colors.white,
+    borderRadius: 30,
+    padding: 14,
+    paddingLeft: 20,
+    fontSize: fontSizes.md,
+    fontFamily: fonts.regular,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
+    borderColor: colors.lime,
   },
   button: {
-    backgroundColor: '#2196F3',
-    padding: 12,
-    borderRadius: 5,
+    backgroundColor: colors.lime,
+    padding: 14,
+    borderRadius: 30,
     width: '100%',
     alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
-   },   
-    logo: {
-    width: 400,
-    height: 80,
-    resizeMode: 'contain',
-    marginBottom: 12,
-  }
+    color: colors.white,
+    fontSize: fontSizes.md,
+    fontFamily: fonts.medium,
+  },
+  forgot: {
+    fontSize: fontSizes.sm,
+    fontFamily: fonts.regular,
+    color: colors.text,
+  },
+  click: {
+    color: colors.forest,
+    fontFamily: fonts.bold,
+  },
 });
