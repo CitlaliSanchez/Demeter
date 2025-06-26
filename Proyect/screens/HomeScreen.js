@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, Image} from 'react-native';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, Image, ImageBackground} from 'react-native';
 
 // Simularemos conexión y datos al inicio
 export default function HomeScreen() {
@@ -40,24 +40,29 @@ if (alerta) {
   );
 
   return (
-    
     <SafeAreaView style={styles.container}>
-      <View style={styles.banner}>
-      <Image source={require('../assets/dimitri-02.png')}
-            style={styles.logo}/>
-      <Text>Banner</Text>
-      </View>
+  <ImageBackground
+    source={require('../assets/plants3.jpg')}
+    style={styles.banner}
+    imageStyle={styles.bannerImage}
+  >
+    <Image style={styles.logo} />
+    <Text style={styles.bannerText}>¡Bienvenido!</Text>
+  </ImageBackground>
 
-      <Text style={[styles.status, { color: connected ? 'green' : 'red' }]}>
-        Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
-      </Text>
-      <Text style={styles.title}>Últimas Lecturas</Text>
-      <FlatList
-        data={readings}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-      />
-    </SafeAreaView>
+  <Text style={[styles.status, { color: connected ? 'green' : 'red' }]}>
+    Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
+  </Text>
+
+  <Text style={styles.title}>Últimas Lecturas</Text>
+
+  <FlatList
+    data={readings}
+    keyExtractor={(item) => item.id}
+    renderItem={renderItem}
+  />
+</SafeAreaView>
+
   );
 }
 
@@ -66,14 +71,26 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#fff',
-    paddingTop: 55,
+    paddingTop:0,
   },
-    banner: {
-    backgroundColor: '#FFF8E1',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
+  banner: {
+  width: '100%',
+  height: 150,
+  borderRadius: 12,
+  marginBottom: 20,
+   justifyContent: 'center', // centra vertical
+  alignItems: 'center',   
+},
+bannerText: {
+  fontSize: 22,
+  color: '#fff',
+  fontWeight: 'bold',
+  fontFamily: 'Poppins_700Bold', // si estás usando el theme
+  backgroundColor: 'rgba(0,0,0,0.3)',
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+  borderRadius: 10,
+},
   status: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -85,7 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   card: {
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#dff5e1',
     padding: 10,
     borderRadius: 8,
     marginBottom: 10,

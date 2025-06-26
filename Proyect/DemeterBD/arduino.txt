@@ -1,0 +1,70 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+// Configuración WiFi
+const char* ssid = "TuRedWiFi";         // Nombre de tu red WiFi
+const char* password = "TuPassword";    // Contraseña de tu WiFi
+
+// Configuración del servidor
+const char* serverUrl = "http://IP_SERVIDOR:5000/sensor_readings"; // Reemplaza con IP de tu servidor
+
+// Configuración del sensor DS18B20
+#define ONE_WIRE_BUS 4
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+void setup() {
+  Serial.begin(115200);
+  
+  // Conexión WiFi
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando a WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConectado a WiFi");
+  Serial.print("Dirección IP: ");
+  Serial.println(WiFi.localIP());
+
+  // Inicializa sensor
+  sensors.begin();
+}
+
+void loop() {
+  sensors.requestTemperatures(); // Solicita lectura del sensor
+  float tempC = sensors.getTempCByIndex(0); // Lee temperatura en °C
+
+  // Muestra lectura en monitor serial
+  Serial.print("Temperatura: ");
+  Serial.print(tempC);
+  Serial.println(" °C");
+
+  // Envía datos al servidor si hay conexión WiFi
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.addHeader("Content-Type", "application/json");
+    
+    // Crea JSON con los datos
+    String httpRequestData = "{\"temperature\":" + String(tempC) + "}";
+    
+    // Envía petición POST
+    int httpResponseCode = http.POST(httpRequestData);
+    
+    if (httpResponseCode > 0) {
+      Serial.print("Datos enviados. Código HTTP: ");
+      Serial.println(httpResponseCode);
+    } else {
+      Serial.print("Error en HTTP: ");
+      Serial.println(httpResponseCode);
+    }
+    http.end();
+  } else {
+    Serial.println("WiFi desconectado");
+  }
+
+  delay(5000); // Espera 5 segundos entre lecturas
+}
