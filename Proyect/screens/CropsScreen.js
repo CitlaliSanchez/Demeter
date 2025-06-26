@@ -50,7 +50,7 @@ export default function CropAreas() {
   const [areas, setAreas] = useState([]);
 
   useEffect(() => {
-    const newAreas = ['A', 'B', 'C', 'D'].map((id) => generateArea(id));
+    const newAreas = ['A', 'B', 'C'].map((id) => generateArea(id));
     setAreas(newAreas);
   }, []);
 
