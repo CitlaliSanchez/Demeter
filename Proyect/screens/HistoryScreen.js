@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
+const AREAS = ['A', 'B', 'C'];
+
 const generarHistorialAleatorio = (cantidad = 50) => {
   const hoy = new Date();
   return Array.from({ length: cantidad }, (_, i) => {
@@ -10,6 +12,7 @@ const generarHistorialAleatorio = (cantidad = 50) => {
 
     return {
       id: i.toString(),
+      area: AREAS[Math.floor(Math.random() * AREAS.length)],
       date: fecha.toISOString().split('T')[0],
       ph: (5.8 + Math.random() * 2).toFixed(2),
       ec: (1.0 + Math.random() * 1.2).toFixed(2),
@@ -29,26 +32,25 @@ export default function HistoryScreen() {
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.date}>{item.date}</Text>
-      <View style={styles.row}>
-        <View style={styles.box}>
-          <Text style={styles.label}>Temperatura</Text>
-          <Text style={styles.value}>{item.temp} °C</Text>
-        </View>
-        <View style={styles.box}>
-          <Text style={styles.label}>pH</Text>
-          <Text style={styles.value}>{item.ph}</Text>
-        </View>
+      <View style={styles.header}>
+        <Text style={styles.area}>Área {item.area}</Text>
+        <Text style={styles.date}>{item.date}</Text>
       </View>
-      <View style={styles.row}>
-        <View style={styles.box}>
-          <Text style={styles.label}>EC</Text>
-          <Text style={styles.value}>{item.ec}</Text>
-        </View>
-        <View style={styles.box}>
-          <Text style={styles.label}>Nivel de Agua</Text>
-          <Text style={styles.value}>{item.nivel}</Text>
-        </View>
+      <View style={styles.infoRow}>
+        <Text style={styles.label}>Temp:</Text>
+        <Text style={styles.value}>{item.temp} °C</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Text style={styles.label}>pH:</Text>
+        <Text style={styles.value}>{item.ph}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Text style={styles.label}>EC:</Text>
+        <Text style={styles.value}>{item.ec}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Text style={styles.label}>Nivel:</Text>
+        <Text style={styles.value}>{item.nivel}</Text>
       </View>
     </View>
   );
@@ -60,7 +62,7 @@ export default function HistoryScreen() {
         data={datos}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 16 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
     </View>
   );
@@ -69,61 +71,57 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: colors.background,
+    padding: 16,
   },
   title: {
     fontSize: fontSizes.xl,
     fontFamily: fonts.bold,
     color: colors.forest,
-    marginBottom: 16,
+    marginBottom: 20,
     textAlign: 'center',
   },
   card: {
-    backgroundColor: colors.sand,
-    padding: 20,
+    backgroundColor: colors.white,
     borderRadius: 16,
+    padding: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.sand,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 5,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  date: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.lg,
-    color: colors.clay,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  row: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  box: {
-    width: '48%',
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
+  area: {
+    fontFamily: fonts.bold,
+    fontSize: fontSizes.lg,
+    color: colors.clay,
+  },
+  date: {
+    fontFamily: fonts.medium,
+    fontSize: fontSizes.md,
+    color: colors.text,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
   },
   label: {
     fontFamily: fonts.medium,
     fontSize: fontSizes.sm,
-    color: colors.text,
-    marginBottom: 4,
+    color: colors.olive,
   },
   value: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.md,
+    fontSize: fontSizes.sm,
     color: colors.forest,
   },
 });
