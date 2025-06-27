@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
+//hola
 
 const notifications = [
   { id: '1', message: 'Nivel bajo en Área B', type: 'warning' },
