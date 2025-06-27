@@ -6,7 +6,7 @@ export const colors = {
   sand: '#F2CDA0',
   white: '#FFFFFF',
   text: '#333333',
-  textSecondary: '#666666', // Añadido para textos secundarios
+  textSecondary: '#666666',
   border: '#E0E0E0', // Añadido para bordes
   background: '#FFFFFF',
   danger: '#A52019',

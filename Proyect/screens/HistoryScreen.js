@@ -326,8 +326,8 @@ export default function HistoryScreen() {
 const getAreaColor = (area) => {
   const colors = {
     'A': '#4F772D',
-    'B': '#4361EE',
-    'C': '#7209B7'
+    'B': '#66A649',
+    'C': '#8C5F37'
   };
   return colors[area] || '#4F772D';
 };
