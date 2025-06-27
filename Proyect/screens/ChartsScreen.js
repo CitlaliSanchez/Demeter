@@ -17,6 +17,27 @@ const dataSimulada = {
   legend: ['pH en Área A'],
 };
 
+async function loadFonts() {
+  await Font.loadAsync({
+    'Poppins-Regular': {
+      uri: 'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
+      display: Font.FontDisplay.FALLBACK,
+    },
+    'Poppins-Medium': {
+      uri: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6Z1xlFQ.woff2',
+      display: Font.FontDisplay.FALLBACK,
+    },
+    'Poppins-SemiBold': {
+      uri: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2',
+      display: Font.FontDisplay.FALLBACK,
+    },
+    'Poppins-Bold': {
+      uri: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2',
+      display: Font.FontDisplay.FALLBACK,
+    },
+  });
+}
+
 const chartConfig = {
   backgroundColor: colors.background,
   backgroundGradientFrom: '#ffffff',
