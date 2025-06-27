@@ -1,19 +1,21 @@
-#include <ESP8266WiFi.h>           // Usa <WiFi.h> si usas ESP32
-#include <ESP8266HTTPClient.h>     // Usa <HTTPClient.h> si usas ESP32
+#include <WiFi.h>
+#include <HTTPClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-#define ONE_WIRE_BUS D4  
+#define ONE_WIRE_BUS 4
+
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 // Tu red WiFi
-const char* ssid = "TU_SSID";
-const char* password = "TU_PASSWORD";
+const char* ssid = "5B";
+const char* password = "18988932";
 
 // IP del servidor FastAPI (tu laptop)
-const char* serverUrl = "http://192.168.0.130:5000/sensor_readings";
+const char* serverUrl = "http://192.168.0.115:5000/sensor_readings";;
+
 
 void setup() {
   Serial.begin(115200);
@@ -57,3 +59,4 @@ void loop() {
 
   delay(5000); // Espera 5 segundos
 }
+
