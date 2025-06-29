@@ -13,9 +13,15 @@ export const colors = {
 };
 
 export const fonts = {
-  regular: 'Poppins_400Regular',
-  medium: 'Poppins_500Medium',
-  bold: 'Poppins_700Bold',
+  regular: 'Poppins-Regular',
+  medium: 'Poppins-Medium',
+  bold: 'Poppins-Bold',
+  light: 'Poppins-Light',
+  italic: 'Poppins-Italic',
+  thin: 'Poppins-Thin',
+  black: 'Poppins-Black',
+  semiBold: 'Poppins-SemiBold',
+  extraBold: 'Poppins-ExtraBold',
 };
 
 export const fontSizes = {

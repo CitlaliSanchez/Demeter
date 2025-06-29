@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, Image, ImageBackground} from 'react-native';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, Image, ImageBackground } from 'react-native';
+import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
-// Simularemos conexión y datos al inicio
 export default function HomeScreen() {
   const [connected, setConnected] = useState(false);
   const [readings, setReadings] = useState([]);
 
   useEffect(() => {
-    // Simula la conexión MQTT después de 2 segundos
     const timeout = setTimeout(() => {
       setConnected(true);
     }, 2000);
 
-    // Simula la llegada de lecturas con el random 
     const simulatedReadings = Array.from({ length: 2 }, (_, i) => ({
       id: i.toString(),
       timestamp: new Date(Date.now() - i * 60000).toLocaleTimeString(),
@@ -23,46 +21,45 @@ export default function HomeScreen() {
     }));
     setReadings(simulatedReadings);
 
-const alerta = simulatedReadings.some(r => parseFloat(r.ph) < 5.5 || parseFloat(r.ph) > 7.0);
-if (alerta) {
-  console.warn('¡Alerta de pH fuera de rango!');
-}
+    const alerta = simulatedReadings.some(r => parseFloat(r.ph) < 5.5 || parseFloat(r.ph) > 7.0);
+    if (alerta) {
+      console.warn('¡Alerta de pH fuera de rango!');
+    }
   }, []);
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.timestamp}>{item.timestamp}</Text>
-      <Text>pH: {item.ph}</Text>
-      <Text>EC: {item.ec}</Text>
-      <Text>Temp: {item.temp} °C</Text>
-      <Text>Nivel: {item.nivel}</Text>
+      <Text style={styles.data}>pH: {item.ph}</Text>
+      <Text style={styles.data}>EC: {item.ec}</Text>
+      <Text style={styles.data}>Temp: {item.temp} °C</Text>
+      <Text style={styles.data}>Nivel: {item.nivel}</Text>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-  <ImageBackground
-    source={require('../assets/plants3.jpg')}
-    style={styles.banner}
-    imageStyle={styles.bannerImage}
-  >
-    <Image style={styles.logo} />
-    <Text style={styles.bannerText}>¡Bienvenido!</Text>
-  </ImageBackground>
+      <ImageBackground
+        source={require('../assets/plants3.jpg')}
+        style={styles.banner}
+        imageStyle={styles.bannerImage}
+      >
+        <Image style={styles.logo} />
+        <Text style={styles.bannerText}>¡Bienvenido!</Text>
+      </ImageBackground>
 
-  <Text style={[styles.status, { color: connected ? 'green' : 'red' }]}>
-    Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
-  </Text>
+      <Text style={[styles.status, { color: connected ? colors.olive : colors.danger }]}>
+        Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
+      </Text>
 
-  <Text style={styles.title}>Últimas Lecturas</Text>
+      <Text style={styles.title}>Últimas Lecturas</Text>
 
-  <FlatList
-    data={readings}
-    keyExtractor={(item) => item.id}
-    renderItem={renderItem}
-  />
-</SafeAreaView>
-
+      <FlatList
+        data={readings}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -70,36 +67,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
-    paddingTop:0,
+    backgroundColor: colors.background,
+    paddingTop: 0,
   },
   banner: {
-  width: '100%',
-  height: 150,
-  borderRadius: 12,
-  marginBottom: 20,
-   justifyContent: 'center', // centra vertical
-  alignItems: 'center',   
-},
-bannerText: {
-  fontSize: 22,
-  color: '#fff',
-  fontWeight: 'bold',
-  fontFamily: 'Poppins_700Bold', // si estás usando el theme
-  backgroundColor: 'rgba(0,0,0,0.3)',
-  paddingHorizontal: 12,
-  paddingVertical: 6,
-  borderRadius: 10,
-},
+    width: '100%',
+    height: 150,
+    borderRadius: 12,
+    marginBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bannerText: {
+    fontSize: fontSizes.xl,
+    color: colors.white,
+    fontFamily: fonts.bold,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
   status: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: fontSizes.md,
+    fontFamily: fonts.medium,
     marginBottom: 12,
   },
   title: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: fontSizes.lg,
+    fontFamily: fonts.bold,
     marginBottom: 12,
+    color: colors.text,
   },
   card: {
     backgroundColor: '#dff5e1',
@@ -108,8 +105,15 @@ bannerText: {
     marginBottom: 10,
   },
   timestamp: {
-    fontWeight: 'bold',
+    fontFamily: fonts.medium,
     marginBottom: 5,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+  },
+  data: {
+    fontFamily: fonts.regular,
+    fontSize: fontSizes.md,
+    color: colors.text,
   },
   logo: {
     width: 400,
