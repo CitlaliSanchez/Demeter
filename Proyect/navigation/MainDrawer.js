@@ -6,6 +6,7 @@ import { colors, fonts, fontSizes } from '../assets/styles/theme';
 import MainTabs from './MainTabs';
 import HistoryScreen from '../screens/HistoryScreen';
 import ChartsScreen from '../screens/ChartsScreen';
+import MisReportesScreen from '../screens/myreportScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -34,6 +35,11 @@ export default function MainDrawer() {
         <Drawer.Screen
           name="Gráficas"
           component={ChartsScreen}
+        />
+        <Drawer.Screen
+          name="Mis Reportes"
+          component={MisReportesScreen}
+          options={{ drawerLabel: 'Mis Reportes PDF' }}
         />
         {/* Aquí agregas más pantallas extras si quieres */}
       </Drawer.Navigator>

@@ -1,16 +1,22 @@
 import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import moment from 'moment';
 
-export async function generarPDF(data) {
-  const asset = Asset.fromModule(require('../assets/logo.png'));
-  await asset.downloadAsync();
+export async function generarPDF(data, imageUri) {
+  const logoAsset = Asset.fromModule(require('../assets/logo.png'));
+  await logoAsset.downloadAsync();
 
-  const logoBase64 = await FileSystem.readAsStringAsync(asset.localUri || '', {
+  const logoBase64 = await FileSystem.readAsStringAsync(logoAsset.localUri || '', {
     encoding: FileSystem.EncodingType.Base64,
   });
+
+  let photoBase64 = '';
+  if (imageUri) {
+    photoBase64 = await FileSystem.readAsStringAsync(imageUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+  }
 
   const fecha = moment().format('LLL');
 
@@ -21,17 +27,19 @@ export async function generarPDF(data) {
           body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             padding: 24px;
-            color: #333333;
-            background-color: #FFFFFF;
+            color: #333;
+            background-color: #FAF9F5;
           }
 
-          .logo {
+          .logo, .photo {
             text-align: center;
             margin-bottom: 20px;
           }
 
-          img {
-            width: 200px;
+          .photo img {
+            width: 90%;
+            border: 4px solid #A3C585;
+            border-radius: 12px;
           }
 
           h1 {
@@ -67,10 +75,6 @@ export async function generarPDF(data) {
             background-color: #F2CDA0;
           }
 
-          tr:hover {
-            background-color: #E6E6E6;
-          }
-
           .footer {
             text-align: center;
             font-size: 12px;
@@ -85,6 +89,13 @@ export async function generarPDF(data) {
         </div>
         <h1>Reporte Detallado - Demeter</h1>
         <div class="date">Generado: ${fecha}</div>
+
+        ${
+          photoBase64
+            ? `<div class="photo"><img src="data:image/jpeg;base64,${photoBase64}" /></div>`
+            : ''
+        }
+
         <table>
           <thead>
             <tr>
@@ -116,12 +127,6 @@ export async function generarPDF(data) {
   `;
 
   const { uri } = await Print.printToFileAsync({ html });
-
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri);
-  } else {
-    alert('PDF generado en: ' + uri);
-  }
 
   return uri;
 }

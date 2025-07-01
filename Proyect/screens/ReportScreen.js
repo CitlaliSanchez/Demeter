@@ -1,9 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { colors, fonts, fontSizes } from '../assets/styles/theme';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { Buffer } from 'buffer';
+
 import { generarPDF } from '../utils/pdfGenerador';
+import { supabase } from '../sbClient';
+import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
 export default function ReportScreen() {
+  const [image, setImage] = useState(null);
+
   const reportData = [
     { date: '2025-06-21', ph: 6.5, ec: 1.4, temp: 24.2, nivel: '80%' },
     { date: '2025-06-22', ph: 6.7, ec: 1.5, temp: 25.1, nivel: '77%' },
@@ -13,23 +21,75 @@ export default function ReportScreen() {
     { date: '2025-06-26', ph: 6.5, ec: 1.4, temp: 24.2, nivel: '80%' },
   ];
 
+  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permiso requerido', 'Activa el permiso de cámara para tomar fotos del cultivo.');
+      }
+    })();
+  }, []);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      quality: 0.6,
+    });
+
+    if (!result.canceled) {
+      const manipResult = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [],
+        { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setImage(manipResult.uri);
+    }
+  };
+
   const handleGenerar = async () => {
-    await generarPDF(reportData);
+    try {
+      const pdfUri = await generarPDF(reportData, image);
+
+      const fileBase64 = await FileSystem.readAsStringAsync(pdfUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const fileName = `reporte-${Date.now()}.pdf`;
+
+      const { error } = await supabase.storage
+        .from('reportes')
+        .upload(`area-a/${fileName}`, Buffer.from(fileBase64, 'base64'), {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+
+      if (error) {
+        Alert.alert('Error', 'No se pudo subir el reporte: ' + error.message);
+      } else {
+        Alert.alert('Éxito', `Reporte subido como ${fileName}`);
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', 'Ocurrió un problema al generar o subir el PDF.');
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Image
-        source={require('../assets/logo.png')}
-        style={styles.logo}
-      />
+      <Image source={require('../assets/logo.png')} style={styles.logo} />
       <Text style={styles.title}>Generar Reporte</Text>
       <Text style={styles.paragraph}>
-        Aquí puedes generar un reporte PDF con las últimas lecturas de tus cultivos.
+        Agrega una foto del cultivo y genera un PDF con las últimas mediciones.
       </Text>
 
+      {image && <Image source={{ uri: image }} style={styles.preview} />}
+
+      <TouchableOpacity style={styles.button} onPress={pickImage}>
+        <Text style={styles.buttonText}>Tomar Foto del Cultivo</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.button} onPress={handleGenerar}>
-        <Text style={styles.buttonText}>Generar y Compartir PDF</Text>
+        <Text style={styles.buttonText}>Generar y Subir PDF</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -61,11 +121,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+  preview: {
+    width: 280,
+    height: 160,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
   button: {
     backgroundColor: colors.clay,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
+    marginBottom: 10,
   },
   buttonText: {
     fontFamily: fonts.medium,

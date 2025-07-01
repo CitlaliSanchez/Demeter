@@ -4,6 +4,7 @@ import { colors, fonts } from '../assets/styles/theme';
 
 import HistoryScreen from '../screens/HistoryScreen';
 import ChartsScreen from '../screens/ChartsScreen';
+import ChartsScreen from '../screens/myreportScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -20,6 +21,7 @@ export default function DrawerNavigator() {
     >
       <Drawer.Screen name="Historial de Mediciones" component={HistoryScreen} />
       <Drawer.Screen name="Gráficas" component={ChartsScreen} />
+      <Drawer.Screen name="Mis Reportes" component={MisReportesScreen} />
     </Drawer.Navigator>
   );
 }
