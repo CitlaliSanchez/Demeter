@@ -30,7 +30,14 @@ export default function ReportScreen() {
     })();
   }, []);
 
-  const pickImage = async () => {
+const pickImage = async () => {
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== 'granted') {
+    Alert.alert('Permiso requerido', 'Necesitamos permiso para acceder a la cámara');
+    return;
+  }
+
+  try {
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       quality: 0.6,
@@ -44,35 +51,51 @@ export default function ReportScreen() {
       );
       setImage(manipResult.uri);
     }
-  };
+  } catch (error) {
+    Alert.alert('Error', 'No se pudo abrir la cámara: ' + error.message);
+  }
+};
 
-  const handleGenerar = async () => {
-    try {
-      const pdfUri = await generarPDF(reportData, image);
+const handleGenerar = async () => {
+  try {
+    if (!image) {
+      Alert.alert('Atención', 'Por favor toma una foto antes de generar el reporte.');
+      return;
+    }
 
-      const fileBase64 = await FileSystem.readAsStringAsync(pdfUri, {
-        encoding: FileSystem.EncodingType.Base64,
+    console.log('Generando PDF...');
+    const pdfUri = await generarPDF(reportData, image);
+    console.log('PDF generado en:', pdfUri);
+
+    if (!pdfUri) {
+      throw new Error('No se generó URI del PDF');
+    }
+
+    const fileBase64 = await FileSystem.readAsStringAsync(pdfUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    console.log('PDF leído en base64, tamaño:', fileBase64.length);
+
+    const fileName = `reporte-${Date.now()}.pdf`;
+
+    const { error } = await supabase.storage
+      .from('reportes')
+      .upload(`area-a/${fileName}`, Buffer.from(fileBase64, 'base64'), {
+        contentType: 'application/pdf',
+        upsert: true,
       });
 
-      const fileName = `reporte-${Date.now()}.pdf`;
-
-      const { error } = await supabase.storage
-        .from('reportes')
-        .upload(`area-a/${fileName}`, Buffer.from(fileBase64, 'base64'), {
-          contentType: 'application/pdf',
-          upsert: true,
-        });
-
-      if (error) {
-        Alert.alert('Error', 'No se pudo subir el reporte: ' + error.message);
-      } else {
-        Alert.alert('Éxito', `Reporte subido como ${fileName}`);
-      }
-    } catch (err) {
-      console.error(err);
-      Alert.alert('Error', 'Ocurrió un problema al generar o subir el PDF.');
+    if (error) {
+      console.error('Error al subir PDF:', error);
+      Alert.alert('Error', 'No se pudo subir el reporte: ' + error.message);
+    } else {
+      Alert.alert('Éxito', `Reporte subido como ${fileName}`);
     }
-  };
+  } catch (err) {
+    console.error('Error en handleGenerar:', err);
+    Alert.alert('Error', 'Ocurrió un problema al generar o subir el PDF: ' + err.message);
+  }
+};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

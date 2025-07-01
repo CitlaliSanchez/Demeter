@@ -13,7 +13,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Esta app requiere acceso a la cámara para tomar fotos de los cultivos."
+      }
     },
     "android": {
       "adaptiveIcon": {

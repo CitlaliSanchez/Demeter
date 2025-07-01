@@ -11,12 +11,17 @@ export async function generarPDF(data, imageUri) {
     encoding: FileSystem.EncodingType.Base64,
   });
 
-  let photoBase64 = '';
-  if (imageUri) {
+let photoBase64 = '';
+if (imageUri) {
+  try {
     photoBase64 = await FileSystem.readAsStringAsync(imageUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
+  } catch (e) {
+    console.warn('No se pudo leer la imagen para el PDF:', e.message);
+    photoBase64 = '';
   }
+}
 
   const fecha = moment().format('LLL');
 
