@@ -2,6 +2,7 @@ import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import moment from 'moment';
+import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
 export async function generarPDF(data, imageUri) {
   const logoAsset = Asset.fromModule(require('../assets/logo.png'));
@@ -11,17 +12,12 @@ export async function generarPDF(data, imageUri) {
     encoding: FileSystem.EncodingType.Base64,
   });
 
-let photoBase64 = '';
-if (imageUri) {
-  try {
+  let photoBase64 = '';
+  if (imageUri) {
     photoBase64 = await FileSystem.readAsStringAsync(imageUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
-  } catch (e) {
-    console.warn('No se pudo leer la imagen para el PDF:', e.message);
-    photoBase64 = '';
   }
-}
 
   const fecha = moment().format('LLL');
 
@@ -29,45 +25,59 @@ if (imageUri) {
     <html>
       <head>
         <style>
+          @page {
+            size: A4;
+            margin: 20px;
+          }
+
           body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            padding: 24px;
+            font-family: 'Arial', sans-serif;
+            padding: 10px;
+            font-size: 12px;
             color: #333;
-            background-color: #FAF9F5;
+            background-color: #fff;
           }
 
           .logo, .photo {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
           }
 
-          .photo img {
+          img.logo-img {
+            width: 150px;
+          }
+
+          img.cultivo-img {
             width: 90%;
-            border: 4px solid #A3C585;
-            border-radius: 12px;
+            max-height: 250px;
+            object-fit: cover;
+            border: 2px solid #A3C585;
+            border-radius: 8px;
           }
 
           h1 {
+            font-size: 16px;
             color: #66A649;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
           }
 
           .date {
             text-align: center;
+            font-size: 11px;
             color: #888;
-            margin-bottom: 24px;
+            margin-bottom: 10px;
           }
 
           table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 11px;
           }
 
           th, td {
             border: 1px solid #ccc;
-            padding: 10px;
+            padding: 6px;
             text-align: center;
           }
 
@@ -77,27 +87,27 @@ if (imageUri) {
           }
 
           tr:nth-child(even) {
-            background-color: #F2CDA0;
+            background-color: #E0E0E0;
           }
 
           .footer {
             text-align: center;
-            font-size: 12px;
-            margin-top: 30px;
+            font-size: 10px;
+            margin-top: 20px;
             color: #495948;
           }
         </style>
       </head>
       <body>
         <div class="logo">
-          <img src="data:image/png;base64,${logoBase64}" />
+          <img class="logo-img" src="data:image/png;base64,${logoBase64}" />
         </div>
         <h1>Reporte Detallado - Demeter</h1>
         <div class="date">Generado: ${fecha}</div>
 
         ${
           photoBase64
-            ? `<div class="photo"><img src="data:image/jpeg;base64,${photoBase64}" /></div>`
+            ? `<div class="photo"><img class="cultivo-img" src="data:image/jpeg;base64,${photoBase64}" /></div>`
             : ''
         }
 
@@ -126,12 +136,12 @@ if (imageUri) {
               .join('')}
           </tbody>
         </table>
+
         <div class="footer">Demeter • La Magia del Cultivo</div>
       </body>
     </html>
   `;
 
   const { uri } = await Print.printToFileAsync({ html });
-
   return uri;
 }

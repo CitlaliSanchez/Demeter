@@ -9,21 +9,31 @@ export default function MisReportesScreen() {
 
   const fetchReportes = async () => {
     setLoading(true);
-    const { data, error } = await supabase.storage.from('reportes').list('area-a', {
-      limit: 100,
-      sortBy: { column: 'name', order: 'desc' },
-    });
-
-    if (!error) {
-      const archivos = await Promise.all(
-        data.map(async (file) => {
-          const { data: urlData } = supabase.storage
+              const { data: urlData, error: urlError } = supabase.storage
             .from('reportes')
             .getPublicUrl(`area-a/${file.name}`);
+          if (urlError) {
+            console.error('Error al obtener URL pública:', urlError.message);
+            return null;
+          }
           return { name: file.name, url: urlData.publicUrl };
-        })
-      );
-      setReportes(archivos);
+    if (!error) {
+const archivos = (await Promise.all(
+  data.map(async (file) => {
+    const { data: urlData, error: urlError } = supabase.storage
+      .from('reportes')
+      .getPublicUrl(`area-a/${file.name}`);
+
+    if (urlError) {
+      console.error('Error al obtener URL pública:', urlError.message);
+      return null;
+    }
+
+    return { name: file.name, url: urlData.publicUrl };
+  })
+)).filter(item => item !== null);
+
+setReportes(archivos);
     } else {
       console.error('Error al obtener reportes:', error.message);
     }
