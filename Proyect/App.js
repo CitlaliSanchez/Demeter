@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { loadFonts } from './assets/fonts/fonts';
-import MainDrawer from './navigation/MainDrawer';
+import AppNavigator from '../Proyect/navigation/AppNavigator';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,7 +36,7 @@ export default function App() {
 
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <MainDrawer />
+     return <AppNavigator />;
     </View>
   );
 }
