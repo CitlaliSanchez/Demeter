@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -11,17 +11,10 @@ import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
 export default function ReportScreen() {
   const [image, setImage] = useState(null);
-
-  const reportData = [
-    { date: '2025-06-21', ph: 6.5, ec: 1.4, temp: 24.2, nivel: '80%' },
-    { date: '2025-06-22', ph: 6.7, ec: 1.5, temp: 25.1, nivel: '77%' },
-    { date: '2025-06-23', ph: 6.4, ec: 1.3, temp: 23.8, nivel: '82%' },
-    { date: '2025-06-24', ph: 6.6, ec: 1.6, temp: 24.5, nivel: '75%' },
-    { date: '2025-06-25', ph: 6.8, ec: 1.7, temp: 25.0, nivel: '78%' },
-    { date: '2025-06-26', ph: 6.5, ec: 1.4, temp: 24.2, nivel: '80%' },
-  ];
+  const [reportData, setReportData] = useState([]);
 
   useEffect(() => {
+    generarDatosSimulados(); // cargar últimas 15 mediciones
     (async () => {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
@@ -30,14 +23,25 @@ export default function ReportScreen() {
     })();
   }, []);
 
-const pickImage = async () => {
-  const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  if (status !== 'granted') {
-    Alert.alert('Permiso requerido', 'Necesitamos permiso para acceder a la cámara');
-    return;
-  }
+  const generarDatosSimulados = () => {
+    const hoy = new Date();
+    const datos = [];
 
-  try {
+    for (let i = 14; i >= 0; i--) {
+      const fecha = new Date(hoy);
+      fecha.setDate(hoy.getDate() - i);
+      datos.push({
+        date: fecha.toISOString().split('T')[0],
+        ph: (6.5 + Math.random() * 0.4).toFixed(2),
+        ec: (1.2 + Math.random() * 0.5).toFixed(2),
+        temp: (23 + Math.random() * 3).toFixed(1),
+        nivel: `${70 + Math.floor(Math.random() * 10)}%`,
+      });
+    }
+    setReportData(datos);
+  };
+
+  const pickImage = async () => {
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       quality: 0.6,
@@ -51,59 +55,48 @@ const pickImage = async () => {
       );
       setImage(manipResult.uri);
     }
-  } catch (error) {
-    Alert.alert('Error', 'No se pudo abrir la cámara: ' + error.message);
-  }
-};
+  };
 
-const handleGenerar = async () => {
-  try {
-    if (!image) {
-      Alert.alert('Atención', 'Por favor toma una foto antes de generar el reporte.');
-      return;
-    }
+  const handleGenerar = async () => {
+    try {
+      console.log('Generando PDF...');
+      const pdfUri = await generarPDF(reportData, image);
 
-    console.log('Generando PDF...');
-    const pdfUri = await generarPDF(reportData, image);
-    console.log('PDF generado en:', pdfUri);
+      if (Platform.OS === 'web') {
+        Alert.alert('Aviso', 'PDF generado y descargado en web. La subida a Supabase no está disponible en navegador.');
+        return;
+      }
 
-    if (!pdfUri) {
-      throw new Error('No se generó URI del PDF');
-    }
-
-    const fileBase64 = await FileSystem.readAsStringAsync(pdfUri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    console.log('PDF leído en base64, tamaño:', fileBase64.length);
-
-    const fileName = `reporte-${Date.now()}.pdf`;
-
-    const { error } = await supabase.storage
-      .from('reportes')
-      .upload(`area-a/${fileName}`, Buffer.from(fileBase64, 'base64'), {
-        contentType: 'application/pdf',
-        upsert: true,
+      const fileBase64 = await FileSystem.readAsStringAsync(pdfUri, {
+        encoding: FileSystem.EncodingType.Base64,
       });
 
-    if (error) {
-      console.error('Error al subir PDF:', error);
-      Alert.alert('Error', 'No se pudo subir el reporte: ' + error.message);
-    } else {
-      Alert.alert('Éxito', `Reporte subido como ${fileName}`);
+      const fileName = `reporte-area-a-${Date.now()}.pdf`;
+
+      const { error } = await supabase.storage
+        .from('reportes')
+        .upload(`area-a/${fileName}`, Buffer.from(fileBase64, 'base64'), {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+
+      if (error) {
+        console.error('Error al subir PDF:', error);
+        Alert.alert('Error', 'No se pudo subir el reporte: ' + error.message);
+      } else {
+        Alert.alert('Éxito', `Reporte subido como ${fileName}`);
+      }
+    } catch (err) {
+      console.error('Error en handleGenerar:', err);
+      Alert.alert('Error', 'Ocurrió un problema al generar o subir el PDF.');
     }
-  } catch (err) {
-    console.error('Error en handleGenerar:', err);
-    Alert.alert('Error', 'Ocurrió un problema al generar o subir el PDF: ' + err.message);
-  }
-};
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Image source={require('../assets/logo.png')} style={styles.logo} />
-      <Text style={styles.title}>Generar Reporte</Text>
-      <Text style={styles.paragraph}>
-        Agrega una foto del cultivo y genera un PDF con las últimas mediciones.
-      </Text>
+      <Text style={styles.title}>Generar Reporte del Área A</Text>
+      <Text style={styles.paragraph}>Agrega una foto del cultivo y genera un PDF con las últimas 15 mediciones.</Text>
 
       {image && <Image source={{ uri: image }} style={styles.preview} />}
 

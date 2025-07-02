@@ -1,8 +1,8 @@
+// utils/pdfGenerador.js
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import moment from 'moment';
-import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
 export async function generarPDF(data, imageUri) {
   const logoAsset = Asset.fromModule(require('../assets/logo.png'));
@@ -25,92 +25,65 @@ export async function generarPDF(data, imageUri) {
     <html>
       <head>
         <style>
-          @page {
-            size: A4;
-            margin: 20px;
-          }
-
+          @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
           body {
-            font-family: 'Arial', sans-serif;
-            padding: 10px;
-            font-size: 12px;
-            color: #333;
+            font-family: 'Poppins', sans-serif;
+            padding: 20px;
+            font-size: 10px;
             background-color: #fff;
+            color: #333;
           }
-
-          .logo, .photo {
+          .center {
             text-align: center;
             margin-bottom: 10px;
           }
-
-          img.logo-img {
-            width: 150px;
+          .logo {
+            width: 120px;
+            margin-bottom: 10px;
           }
-
-          img.cultivo-img {
+          .photo {
             width: 90%;
-            max-height: 250px;
-            object-fit: cover;
             border: 2px solid #A3C585;
-            border-radius: 8px;
+            border-radius: 10px;
+            margin: 10px auto;
+            display: block;
           }
-
-          h1 {
-            font-size: 16px;
-            color: #66A649;
-            text-align: center;
-            margin-bottom: 5px;
-          }
-
-          .date {
-            text-align: center;
-            font-size: 11px;
-            color: #888;
-            margin-bottom: 10px;
-          }
-
           table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            margin-top: 10px;
           }
-
           th, td {
-            border: 1px solid #ccc;
-            padding: 6px;
+            border: 1px solid #aaa;
+            padding: 5px;
             text-align: center;
           }
-
           th {
             background-color: #547326;
-            color: #FFFFFF;
+            color: white;
           }
-
           tr:nth-child(even) {
-            background-color: #E0E0E0;
+            background-color: #f2f2f2;
           }
-
           .footer {
+            margin-top: 16px;
             text-align: center;
-            font-size: 10px;
-            margin-top: 20px;
-            color: #495948;
+            font-size: 9px;
+            color: #777;
           }
         </style>
       </head>
       <body>
-        <div class="logo">
-          <img class="logo-img" src="data:image/png;base64,${logoBase64}" />
+        <div class="center">
+          <img src="data:image/png;base64,${logoBase64}" class="logo" />
+          <h2>Reporte de Cultivo - Área A</h2>
+          <p>Generado: ${fecha}</p>
         </div>
-        <h1>Reporte Detallado - Demeter</h1>
-        <div class="date">Generado: ${fecha}</div>
-
         ${
           photoBase64
-            ? `<div class="photo"><img class="cultivo-img" src="data:image/jpeg;base64,${photoBase64}" /></div>`
+            ? `<img src="data:image/jpeg;base64,${photoBase64}" class="photo" />`
             : ''
         }
-
         <table>
           <thead>
             <tr>
@@ -122,26 +95,22 @@ export async function generarPDF(data, imageUri) {
             </tr>
           </thead>
           <tbody>
-            ${data
-              .map(
-                (item) => `
+            ${data.map(item => `
               <tr>
                 <td>${item.date}</td>
                 <td>${item.ph}</td>
                 <td>${item.ec}</td>
                 <td>${item.temp}</td>
                 <td>${item.nivel}</td>
-              </tr>`
-              )
-              .join('')}
+              </tr>`).join('')}
           </tbody>
         </table>
-
         <div class="footer">Demeter • La Magia del Cultivo</div>
       </body>
     </html>
   `;
 
   const { uri } = await Print.printToFileAsync({ html });
+  console.log('PDF generado en:', uri);
   return uri;
 }
