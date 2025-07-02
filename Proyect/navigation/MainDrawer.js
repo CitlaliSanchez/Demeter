@@ -1,7 +1,7 @@
 import React from 'react';
+import { NavigationContainer } from '@react-navigation/native'; // Faltaba esta importación
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { NavigationContainer } from '@react-navigation/native';
-import { colors, fonts, fontSizes } from '../assets/styles/theme';
+import { colors, fonts, fontSizes } from '../assets/styles/theme'; // Opcional, si los usas más adelante
 
 import MainTabs from './MainTabs';
 import HistoryScreen from '../screens/HistoryScreen';
@@ -41,7 +41,7 @@ export default function MainDrawer() {
           component={MisReportesScreen}
           options={{ drawerLabel: 'Mis Reportes PDF' }}
         />
-        {/* Aquí agregas más pantallas extras si quieres */}
+        {/* Aquí puedes agregar más pantallas si lo deseas */}
       </Drawer.Navigator>
     </NavigationContainer>
   );

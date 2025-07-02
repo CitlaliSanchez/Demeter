@@ -1,35 +1,39 @@
-// AppNavigator.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { auth } from '../FireBase/firebaseConfig';
+import { onAuthStateChanged } from '../FireBase/auth';
 
-// Importa los archivos tal como los nombraste (en minúsculas)
-import Login from '../screens/LoginScreen';
-import MainTabs from '../navigation/MainTabs';
-import ReportScreen from '../screens/ReportScreen';
+// Screens
+import LoginScreen from '../screens/LoginScreen';
+import MainDrawer from './MainDrawer'; // Cambiamos MainTabs por MainDrawer
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="LoginScreen"
-          component={Login}
-          options={{ headerShown: false }} //oculta los encabezados
-        />
-        <Stack.Screen
-          name="MainTabs"
-          component={MainTabs}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ReportScreen" //aqui se manda a la navegacion principal para el menu y que acceda a los screens
-          component={ReportScreen}
-          options={{ headerShown: false }}
-        />
-
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          <Stack.Screen name="MainDrawer" component={MainDrawer} />
+        ) : (
+          <Stack.Screen name="Login" component={LoginScreen} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
