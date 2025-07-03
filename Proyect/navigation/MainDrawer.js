@@ -1,48 +1,65 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native'; // Faltaba esta importación
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { colors, fonts, fontSizes } from '../assets/styles/theme'; // Opcional, si los usas más adelante
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
+import { getAuth, signOut } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
 
 import MainTabs from './MainTabs';
 import HistoryScreen from '../screens/HistoryScreen';
 import ChartsScreen from '../screens/ChartsScreen';
-import MisReportesScreen from '../screens/myreportScreen';
 
 const Drawer = createDrawerNavigator();
 
+function CustomDrawerContent(props) {
+  const navigation = useNavigation();
+
+  const handleLogout = () => {
+    signOut(getAuth())
+      .then(() => {
+        navigation.replace('Login');
+      })
+      .catch((error) => {
+        console.error('Error al cerrar sesión:', error);
+      });
+  };
+
+  return (
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+      <DrawerItem
+        label="Cerrar sesión"
+        onPress={handleLogout}
+        labelStyle={{ color: 'red' }}
+      />
+    </DrawerContentScrollView>
+  );
+}
+
 export default function MainDrawer() {
   return (
-    <NavigationContainer>
-      <Drawer.Navigator
-        initialRouteName="Inicio"
-        screenOptions={{
-          headerShown: true,
-          drawerActiveTintColor: '#547326',
-          drawerLabelStyle: {
-            fontFamily: 'Poppins_500Medium',
-          },
-        }}
-      >
-        <Drawer.Screen
-          name="Inicio"
-          component={MainTabs}
-          options={{ drawerLabel: 'Pantalla Principal' }}
-        />
-        <Drawer.Screen
-          name="Historial de Mediciones"
-          component={HistoryScreen}
-        />
-        <Drawer.Screen
-          name="Gráficas"
-          component={ChartsScreen}
-        />
-        <Drawer.Screen
-          name="Mis Reportes"
-          component={MisReportesScreen}
-          options={{ drawerLabel: 'Mis Reportes PDF' }}
-        />
-        {/* Aquí puedes agregar más pantallas si lo deseas */}
-      </Drawer.Navigator>
-    </NavigationContainer>
+    <Drawer.Navigator
+      initialRouteName="Inicio"
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      screenOptions={{
+        headerShown: true,
+        drawerActiveTintColor: '#547326',
+        drawerLabelStyle: {
+          fontFamily: 'Poppins_500Medium',
+        },
+      }}
+    >
+      <Drawer.Screen
+        name="Inicio"
+        component={MainTabs}
+        options={{ drawerLabel: 'Pantalla Principal' }}
+      />
+      <Drawer.Screen
+        name="Historial de Mediciones"
+        component={HistoryScreen}
+      />
+      <Drawer.Screen
+        name="Gráficas"
+        component={ChartsScreen}
+      />
+    </Drawer.Navigator>
   );
 }
