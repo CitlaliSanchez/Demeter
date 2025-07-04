@@ -6,7 +6,6 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ReportScreen from '../screens/ReportScreen';
-import AreaCultivos from '../screens/AreaCultivos';
 
 const Tab = createBottomTabNavigator();
 
@@ -35,7 +34,7 @@ export default function MainTabs() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Crops" component={AreaCultivos} />
+      <Tab.Screen name="Crops" component={CropsScreen} />
       <Tab.Screen name="Report" component={ReportScreen} />
     </Tab.Navigator>
   );//cambio de las pantallas, el nombre es el nombre correcto del archivo 

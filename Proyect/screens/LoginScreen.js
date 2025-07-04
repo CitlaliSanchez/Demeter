@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, Platform, Animated, Image } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Animated,
+  Image
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Easing } from 'react-native-reanimated';
 import { registerUser, loginUser } from '../FireBase/auth';
@@ -15,6 +26,7 @@ export default function LoginScreen({ navigation }) {
     password: '',
     general: ''
   });
+
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(30))[0];
 
@@ -34,60 +46,63 @@ export default function LoginScreen({ navigation }) {
     ]).start();
   }, []);
 
- const handleAuth = async () => {
-  // Limpiar todos los errores previos
-  setErrors({
-    email: '',
-    password: '',
-    general: ''
-  });
+  const handleAuth = async () => {
+    setErrors({ email: '', password: '', general: '' });
 
-  
-  if (password.length < 6) {
-    setErrors({
-      password: 'La contraseña debe tener al menos 6 dígitos',
-      general: ''
-    });
-    shakeAnimation();
-    return;
-  }
-
- 
-  if (!email.includes('@')) {
-    setErrors({
-      email: 'Correo electrónico inválido',
-      general: ''
-    });
-    shakeAnimation();
-    return;
-  }
-
-  setIsLoading(true);
-  try {
-    if (isRegistering) {
-      await registerUser(email, password);
-      Alert.alert('Éxito', 'Usuario registrado correctamente. Por favor verifica tu email.');
-    } else {
-      await loginUser(email, password);
-      navigation.navigate('MainDrawer');
+    if (!email || !password) {
+      setErrors({
+        email: !email ? 'Correo requerido' : '',
+        password: !password ? 'Contraseña requerida' : '',
+        general: ''
+      });
+      shakeAnimation();
+      return;
     }
-  } catch (error) {
-    let errorMessage = 'Error de credenciales'; 
-    
-    // Manejo específico para errores de registro
-    if (isRegistering && error.code === 'auth/email-already-in-use') {
-      errorMessage = 'Este correo ya está registrado';
+
+    if (!email.includes('@')) {
+      setErrors({
+        email: 'Correo electrónico inválido',
+        password: '',
+        general: ''
+      });
+      shakeAnimation();
+      return;
     }
-    
-    setErrors({
-      ...errors,
-      general: errorMessage
-    });
-    shakeAnimation();
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    if (password.length < 6) {
+      setErrors({
+        email: '',
+        password: 'La contraseña debe tener al menos 6 dígitos',
+        general: ''
+      });
+      shakeAnimation();
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isRegistering) {
+        await registerUser(email, password);
+        Alert.alert('Éxito', 'Usuario registrado correctamente. Por favor verifica tu email.');
+      } else {
+        await loginUser(email, password);
+        // NO navegues manualmente. AppNavigator hará el cambio automáticamente.
+      }
+    } catch (error) {
+      let errorMessage = 'Error de credenciales';
+      if (isRegistering && error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Este correo ya está registrado';
+      }
+      setErrors({
+        email: '',
+        password: '',
+        general: errorMessage
+      });
+      shakeAnimation();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const shakeAnimation = () => {
     const shake = new Animated.Value(0);
@@ -100,14 +115,14 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.keyboardContainer}
     >
-      <Animated.View 
+      <Animated.View
         style={[
           styles.authContainer,
-          { 
+          {
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }]
           }
@@ -118,7 +133,7 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.subtitle}>
           {isRegistering ? 'Register to get started' : 'Log in to continue'}
         </Text>
-        
+
         <View style={styles.inputContainer}>
           <Ionicons name="mail-outline" size={20} color="#888" style={styles.inputIcon} />
           <TextInput
@@ -132,7 +147,7 @@ export default function LoginScreen({ navigation }) {
           />
         </View>
         {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
-        
+
         <View style={styles.inputContainer}>
           <Ionicons name="lock-closed-outline" size={20} color="#888" style={styles.inputIcon} />
           <TextInput
@@ -144,10 +159,10 @@ export default function LoginScreen({ navigation }) {
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons 
-              name={showPassword ? "eye-off-outline" : "eye-outline"} 
-              size={20} 
-              color="#888" 
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={20}
+              color="#888"
               style={styles.passwordIcon}
             />
           </TouchableOpacity>
@@ -155,12 +170,12 @@ export default function LoginScreen({ navigation }) {
         {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
         {errors.general ? (
-          <Text style={[styles.errorText, {textAlign: 'center', marginBottom: 10}]}>
+          <Text style={[styles.errorText, { textAlign: 'center', marginBottom: 10 }]}>
             {errors.general}
           </Text>
         ) : null}
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.authButton}
           onPress={handleAuth}
           disabled={isLoading}
@@ -173,14 +188,14 @@ export default function LoginScreen({ navigation }) {
             </Text>
           )}
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.switchButton}
           onPress={() => setIsRegistering(!isRegistering)}
         >
           <Text style={styles.switchButtonText}>
-            {isRegistering ? 
-              'Already have an account? Sign In' : 
+            {isRegistering ?
+              'Already have an account? Sign In' :
               "Don't have an account? Register"}
           </Text>
         </TouchableOpacity>
@@ -259,10 +274,10 @@ const styles = StyleSheet.create({
   image: {
     width: 120,
     height: 120,
-    alignSelf: 'center', 
+    alignSelf: 'center',
     marginVertical: 'auto',
     marginTop: 20,
-    marginBottom:12,
+    marginBottom: 12,
   },
   errorText: {
     color: 'red',
