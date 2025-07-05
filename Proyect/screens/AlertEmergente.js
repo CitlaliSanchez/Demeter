@@ -28,7 +28,7 @@ export default function AlertEmergente({ visible, onClose, mensaje }) {
           <Ionicons name="warning" size={40} color="#fff" style={{ marginBottom: 8 }} />
           <Text style={styles.mensaje}>{mensaje}</Text>
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>Entendido</Text>
+            <Text style={styles.buttonText}>Agreed</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -18,6 +18,7 @@ export default function ReportScreen() {
   const [reportData, setReportData] = useState([]);
   const [observaciones, setObservaciones] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const area = 'Area A'; // Aquí podrías luego hacerlo dinámico
 
   useEffect(() => {
     generarDatosSimulados();
@@ -68,7 +69,7 @@ export default function ReportScreen() {
 
   const handleGenerar = async () => {
     try {
-      const pdfUri = await generarPDF(reportData, image, observaciones, userEmail);
+      const pdfUri = await generarPDF(reportData, image, observaciones, userEmail, area);
       if (Platform.OS === 'web') {
         Alert.alert('Aviso', 'PDF generado. La subida a Supabase no está disponible en navegador.');
         return;
@@ -78,10 +79,11 @@ export default function ReportScreen() {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const fileName = `reporte-area-a-${Date.now()}.pdf`;
+      const fileName = `reporte-${area.toLowerCase().replace(' ', '-')}-${Date.now()}.pdf`;
+
       const { error } = await supabase.storage
         .from('reportes')
-        .upload(`area-a/${fileName}`, Buffer.from(fileBase64, 'base64'), {
+        .upload(`${area.toLowerCase().replace(' ', '-')}/${fileName}`, Buffer.from(fileBase64, 'base64'), {
           contentType: 'application/pdf',
           upsert: true,
         });
@@ -101,28 +103,28 @@ export default function ReportScreen() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : null}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Image source={require('../assets/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Generar Reporte del Área A</Text>
-        <Text style={styles.paragraph}>Agrega una foto del cultivo, escribe observaciones y genera un PDF.</Text>
+        <Text style={styles.title}>Generate Report {area}</Text>
+        <Text style={styles.paragraph}>Add a photo of the crop, write your observations, and generate a PDF</Text>
 
         {image && <Image source={{ uri: image }} style={styles.preview} />}
 
         <TouchableOpacity style={styles.button} onPress={pickImage}>
-          <Text style={styles.buttonText}>Tomar Foto del Cultivo</Text>
+          <Text style={styles.buttonText}>Take a photo of the crop</Text>
         </TouchableOpacity>
 
-        <Text style={styles.inputLabel}>Observaciones del agricultor</Text>
+        <Text style={styles.inputLabel}>Farmer's observations</Text>
         <TextInput
           style={styles.textArea}
           multiline
           numberOfLines={5}
           value={observaciones}
           onChangeText={setObservaciones}
-          placeholder="Escribe tus comentarios aquí..."
+          placeholder="Write your comments here..."
           textAlignVertical="top"
         />
 
         <TouchableOpacity style={styles.button} onPress={handleGenerar}>
-          <Text style={styles.buttonText}>Generar y Subir PDF</Text>
+          <Text style={styles.buttonText}>Generate and Upload PDF</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -15,20 +15,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { Easing } from 'react-native-reanimated';
 import { registerUser, loginUser } from '../FireBase/auth';
 
+import { colors, fonts, fontSizes } from '../assets/styles/theme';
+
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({
-    email: '',
-    password: '',
-    general: ''
-  });
+  const [errors, setErrors] = useState({ email: '', password: '', general: '' });
 
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(30))[0];
+  const logoAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
     Animated.parallel([
@@ -40,6 +39,12 @@ export default function LoginScreen({ navigation }) {
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 800,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoAnim, {
+        toValue: 1,
+        duration: 1200,
         easing: Easing.out(Easing.exp),
         useNativeDriver: true,
       })
@@ -86,7 +91,6 @@ export default function LoginScreen({ navigation }) {
         Alert.alert('Éxito', 'Usuario registrado correctamente. Por favor verifica tu email.');
       } else {
         await loginUser(email, password);
-        // NO navegues manualmente. AppNavigator hará el cambio automáticamente.
       }
     } catch (error) {
       let errorMessage = 'Error de credenciales';
@@ -128,12 +132,42 @@ export default function LoginScreen({ navigation }) {
           }
         ]}
       >
-        <Text style={styles.title}>{isRegistering ? 'Create an Account' : 'Welcome'}</Text>
-        <Image source={require('../assets/dimitri-01.png')} style={styles.image} />
-        <Text style={styles.subtitle}>
-          {isRegistering ? 'Register to get started' : 'Log in to continue'}
+        {/* LOGO ANIMADO */}
+        <Animated.Image
+          source={require('../assets/logo.png')}
+          style={[
+            styles.logo,
+            {
+              opacity: logoAnim,
+              transform: [
+                {
+                  scale: logoAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1]
+                  })
+                }
+              ]
+            }
+          ]}
+        />
+
+        {/* SLOGAN */}
+        <Text style={styles.slogan}>Smart farming, better future</Text>
+
+        {/* TÍTULO */}
+        <Text style={styles.title}>
+          {isRegistering ? 'Join Demeter' : 'Welcome to Demeter'}
         </Text>
 
+        {/* IMAGEN DE CULTIVO */}
+        <Image source={require('../assets/dimitri-01.png')} style={styles.image} />
+
+        {/* SUBTÍTULO */}
+        <Text style={styles.subtitle}>
+          {isRegistering ? 'Register to start monitoring your crops' : 'Log in to manage your crops'}
+        </Text>
+
+        {/* INPUT EMAIL */}
         <View style={styles.inputContainer}>
           <Ionicons name="mail-outline" size={20} color="#888" style={styles.inputIcon} />
           <TextInput
@@ -148,6 +182,7 @@ export default function LoginScreen({ navigation }) {
         </View>
         {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
+        {/* INPUT PASSWORD */}
         <View style={styles.inputContainer}>
           <Ionicons name="lock-closed-outline" size={20} color="#888" style={styles.inputIcon} />
           <TextInput
@@ -175,6 +210,7 @@ export default function LoginScreen({ navigation }) {
           </Text>
         ) : null}
 
+        {/* BOTÓN PRINCIPAL */}
         <TouchableOpacity
           style={styles.authButton}
           onPress={handleAuth}
@@ -189,14 +225,13 @@ export default function LoginScreen({ navigation }) {
           )}
         </TouchableOpacity>
 
+        {/* CAMBIO DE MODO */}
         <TouchableOpacity
           style={styles.switchButton}
           onPress={() => setIsRegistering(!isRegistering)}
         >
           <Text style={styles.switchButtonText}>
-            {isRegistering ?
-              'Already have an account? Sign In' :
-              "Don't have an account? Register"}
+            {isRegistering ? 'Already have an account? Sign In' : "Don't have an account? Register"}
           </Text>
         </TouchableOpacity>
       </Animated.View>
@@ -208,33 +243,55 @@ const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#dff5e1',
+    backgroundColor: colors.white, // Color de fondo
   },
   authContainer: {
     padding: 24,
   },
-  title: {
-    fontSize: 35,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+  logo: {
+    width: 130,
+    height: 130,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 6,
+  },
+  slogan: {
+    fontSize: fontSizes.sm,
+    color: colors.clay,
+    textAlign: 'center',
+    fontFamily: fonts.italic,
     marginBottom: 8,
+  },
+  title: {
+    fontSize: fontSizes.xl + 6,
+    fontFamily: fonts.bold,
+    color: colors.forest,
+    marginBottom: 4,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#7f8c8d',
+    fontSize: fontSizes.md,
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
     marginBottom: 24,
     textAlign: 'center',
+  },
+  image: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginTop: 20,
+    marginBottom: 12,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     borderRadius: 30,
     paddingHorizontal: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#27ae60',
+    borderColor: colors.lime,
   },
   inputIcon: {
     marginRight: 10,
@@ -245,10 +302,12 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 50,
-    fontSize: 16,
+    fontSize: fontSizes.md,
+    fontFamily: fonts.regular,
+    color: colors.text,
   },
   authButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: colors.lime,
     padding: 16,
     borderRadius: 30,
     alignItems: 'center',
@@ -256,34 +315,28 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   authButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: colors.white,
+    fontSize: fontSizes.lg,
+    fontFamily: fonts.semiBold,
   },
   switchButton: {
     alignItems: 'center',
     marginTop: 12,
   },
   switchButtonText: {
-    color: '#27ae60',
-    fontSize: 14,
+    color: colors.lime,
+    fontSize: fontSizes.sm,
+    fontFamily: fonts.medium,
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: fontSizes.sm - 2,
+    marginLeft: 20,
+    marginTop: -10,
+    marginBottom: 10,
+    fontFamily: fonts.regular,
   },
   loadingIcon: {
     transform: [{ rotate: '360deg' }],
   },
-  image: {
-    width: 120,
-    height: 120,
-    alignSelf: 'center',
-    marginVertical: 'auto',
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    marginLeft: 20,
-    marginTop: -10,
-    marginBottom: 10,
-  }
 });

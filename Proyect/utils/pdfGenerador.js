@@ -2,7 +2,9 @@ import * as FileSystem from 'expo-file-system';
 import moment from 'moment';
 import * as Print from 'expo-print';
 import { Asset } from 'expo-asset';
-export async function generarPDF(data, imageUri, observaciones = '', userEmail = '') {
+
+export async function generarPDF(data, imageUri, observaciones = '', userEmail = '', area = 'Área') {
+  // Carga logo y lo convierte a base64
   const logoAsset = Asset.fromModule(require('../assets/logo.png'));
   await logoAsset.downloadAsync();
 
@@ -92,8 +94,8 @@ export async function generarPDF(data, imageUri, observaciones = '', userEmail =
       <body>
         <div class="center">
           <img src="data:image/png;base64,${logoBase64}" class="logo" />
-          <h2>Reporte de Cultivo – Área A</h2>
-          <p class="meta">Generado el: ${fecha}</p>
+          <h2>Crop Report – ${area}</h2>
+          <p class="meta">Generated on: ${fecha}</p>
         </div>
 
         <table>
@@ -123,13 +125,13 @@ export async function generarPDF(data, imageUri, observaciones = '', userEmail =
           : ''}
 
         <div class="obs">
-          <h4>Observaciones del agricultor:</h4>
+          <h4>Farmer's observations:</h4>
           <p>${observaciones || 'Sin observaciones registradas.'}</p>
         </div>
 
         <div class="footer">
           Redactado por: ${userEmail || 'Usuario desconocido'} <br />
-          Deméter • La Magia del Cultivo Inteligente
+          Demeter • The Magic of Smart Growing
         </div>
       </body>
     </html>

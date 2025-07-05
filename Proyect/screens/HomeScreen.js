@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   Image,
   ImageBackground,
+  Animated,
+  Platform,
 } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import AlertEmergente from './AlertEmergente';
@@ -17,6 +19,7 @@ export default function HomeScreen() {
   const [readings, setReadings] = useState([]);
   const [alertVisible, setAlertVisible] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  const animatedValues = readings.map(() => new Animated.Value(0));
 
   const mensajesDeAlerta = [
     '¡pH fuera de rango detectado!',
@@ -31,14 +34,16 @@ export default function HomeScreen() {
   };
 
   const sendPushNotification = async (mensaje) => {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Alerta Hidropónica',
-        body: mensaje,
-        sound: 'default',
-      },
-      trigger: null,
-    });
+    if (Platform.OS !== 'web') {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Alerta Hidropónica',
+          body: mensaje,
+          sound: 'default',
+        },
+        trigger: null,
+      });
+    }
   };
 
   const generateReadings = () => {
@@ -63,7 +68,8 @@ export default function HomeScreen() {
 
   useEffect(() => {
     setTimeout(() => setConnected(true), 2000);
-    setReadings(generateReadings());
+    const datos = generateReadings();
+    setReadings(datos);
 
     const lecturaInterval = setInterval(() => {
       setReadings(generateReadings());
@@ -76,7 +82,7 @@ export default function HomeScreen() {
         setMensaje(nuevoMensaje);
         setAlertVisible(true);
         sendPushNotification(nuevoMensaje);
-        programarAlerta(); // vuelve a programar
+        programarAlerta();
       }, tiempo);
     };
 
@@ -87,28 +93,50 @@ export default function HomeScreen() {
     };
   }, []);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.timestamp}>{item.timestamp} - {item.area}</Text>
-      <Text style={styles.label}>pH: <Text style={styles.value}>{item.ph}</Text></Text>
-      <Text style={styles.label}>EC: <Text style={styles.value}>{item.ec}</Text></Text>
-      <Text style={styles.label}>Temp: <Text style={styles.value}>{item.temp} °C</Text></Text>
-      <Text style={styles.label}>Nivel: <Text style={styles.value}>{item.nivel}</Text></Text>
-    </View>
-  );
+  const startFadeIn = (index) => {
+    Animated.timing(animatedValues[index], {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const renderItem = ({ item, index }) => {
+    const fadeAnim = animatedValues[index] || new Animated.Value(0);
+    startFadeIn(index);
+
+    const isAnomaly =
+      parseFloat(item.ph) < 5.5 ||
+      parseFloat(item.ph) > 7.0 ||
+      parseFloat(item.ec) > 2.5 ||
+      parseFloat(item.temp) > 28 ||
+      parseInt(item.nivel) < 20;
+
+    return (
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <View style={[styles.card, isAnomaly && styles.cardAnomaly]}>
+          <Text style={styles.timestamp}>{item.timestamp} - {item.area}</Text>
+          <Text style={styles.label}>pH: <Text style={styles.value}>{item.ph}</Text></Text>
+          <Text style={styles.label}>EC: <Text style={styles.value}>{item.ec}</Text></Text>
+          <Text style={styles.label}>Temp: <Text style={styles.value}>{item.temp} °C</Text></Text>
+          <Text style={styles.label}>Nivel: <Text style={styles.value}>{item.nivel}</Text></Text>
+        </View>
+      </Animated.View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
-        source={require('../assets/plants3.jpg')}
+        source={require('../assets/banner.jpg')}
         style={styles.banner}
         imageStyle={styles.bannerImage}
       >
-        <Image style={styles.logo} source={require('../assets/logo.png')} />
-        <Text style={styles.bannerText}>Welcome!</Text>
       </ImageBackground>
 
-      <Text style={[styles.status, { color: connected ? colors.lime : colors.danger }]}>Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}</Text>
+      <Text style={[styles.status, { color: connected ? colors.lime : colors.danger }]}>
+        Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
+      </Text>
       <Text style={styles.title}>Latest Readings</Text>
 
       <FlatList
@@ -131,66 +159,86 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: colors.background,
+    backgroundColor: '#f4f6f5',
   },
   banner: {
     width: '100%',
-    height: 130,
-    borderRadius: 12,
-    marginBottom: 20,
-    justifyContent: 'center',
+    height: 160,
+    marginBottom: 24,
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  bannerImage: {
+    resizeMode: 'cover',
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
   bannerText: {
-    fontSize: fontSizes.xl,
+    fontSize: fontSizes.xl + 2,
     color: colors.white,
-    fontFamily: fonts.bold,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 10,
+    fontFamily: fonts.extraBold,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    marginBottom: 16,
+    borderRadius: 6,
+    textAlign: 'center',
   },
   logo: {
-    width: 320,
-    height: 60,
+    width: 260,
+    height: 55,
     resizeMode: 'contain',
-    marginBottom: 4,
+    position: 'absolute',
+    top: 12,
   },
   status: {
     fontSize: fontSizes.md,
     fontFamily: fonts.medium,
     marginBottom: 10,
+    textAlign: 'center',
+    color: colors.textSecondary,
   },
   title: {
-    fontSize: fontSizes.lg,
-    fontFamily: fonts.bold,
-    marginBottom: 12,
+    fontSize: fontSizes.xl,
+    fontFamily: fonts.semiBold,
+    marginBottom: 16,
     color: colors.forest,
+    textAlign: 'center',
   },
   card: {
-    backgroundColor: colors.sand,
-    padding: 14,
+    backgroundColor: '#ffffff',
     borderRadius: 12,
-    marginBottom: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.lime,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  cardAnomaly: {
+    backgroundColor: '#ffecec',
+    borderLeftColor: colors.danger,
   },
   timestamp: {
     fontSize: fontSizes.sm,
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.medium,
     color: colors.textSecondary,
     marginBottom: 6,
   },
   label: {
     fontFamily: fonts.medium,
-    fontSize: fontSizes.md,
+    fontSize: fontSizes.sm,
     color: colors.text,
+    marginBottom: 2,
   },
   value: {
-    fontFamily: fonts.bold,
+    fontFamily: fonts.semiBold,
     color: colors.forest,
   },
 });

@@ -7,23 +7,26 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { supabase } from '../sbClient';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
+const AREAS = ['area-a', 'area-b', 'area-c'];
+
 export default function MisReportesScreen() {
   const [reportes, setReportes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedArea, setSelectedArea] = useState('area-a');
 
-  const fetchReportes = async () => {
+  const fetchReportes = async (area = selectedArea) => {
     setLoading(true);
     const { data, error } = await supabase
       .storage.from('reportes')
-      .list('area-a', { limit: 100, sortBy: { column: 'name', order: 'desc' } });
+      .list(area, { limit: 100, sortBy: { column: 'name', order: 'desc' } });
 
     if (!error && data) {
       const archivos = await Promise.all(
         data.map(async (file) => {
           const { data: urlData } = supabase
             .storage.from('reportes')
-            .getPublicUrl(`area-a/${file.name}`);
+            .getPublicUrl(`${area}/${file.name}`);
           if (urlData?.publicUrl) {
             return { name: file.name, url: urlData.publicUrl };
           }
@@ -33,8 +36,20 @@ export default function MisReportesScreen() {
       setReportes(archivos.filter(item => item !== null));
     } else {
       console.error('Error al obtener reportes:', error?.message);
+      Alert.alert('Error', 'No se pudieron cargar los reportes.');
+      setReportes([]);
     }
     setLoading(false);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    fetchReportes(selectedArea);
+  }, [selectedArea]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchReportes(selectedArea);
   };
 
   const handleDelete = (fileName) => {
@@ -47,7 +62,7 @@ export default function MisReportesScreen() {
           text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
-            const { error } = await supabase.storage.from('reportes').remove([`area-a/${fileName}`]);
+            const { error } = await supabase.storage.from('reportes').remove([`${selectedArea}/${fileName}`]);
             if (error) {
               Alert.alert('Error', 'No se pudo eliminar el archivo');
               return;
@@ -59,21 +74,35 @@ export default function MisReportesScreen() {
     );
   };
 
-  useEffect(() => {
-    fetchReportes();
-  }, []);
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Mis Reportes PDF</Text>
+      <Text style={styles.title}>My Reports PDF</Text>
+
+      {/* Selector de área */}
+      <View style={styles.tabs}>
+        {AREAS.map(area => (
+          <TouchableOpacity
+            key={area}
+            style={[styles.tab, selectedArea === area && styles.activeTab]}
+            onPress={() => setSelectedArea(area)}
+          >
+            <Text style={[styles.tabText, selectedArea === area && styles.activeTabText]}>
+              {area.toUpperCase().replace('-', ' ')}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {loading ? (
         <ActivityIndicator size="large" color={colors.olive} />
+      ) : reportes.length === 0 ? (
+        <Text style={styles.noReportsText}>No hay reportes para {selectedArea.toUpperCase().replace('-', ' ')}.</Text>
       ) : (
         <FlatList
           data={reportes}
           keyExtractor={(item) => item.name}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={fetchReportes} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           renderItem={({ item }) => (
             <View style={styles.itemContainer}>
@@ -108,6 +137,36 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: colors.forest,
     marginBottom: 16,
+    textAlign: 'center',
+  },
+  tabs: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  tab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: colors.grayLight,
+  },
+  activeTab: {
+    backgroundColor: colors.olive,
+  },
+  tabText: {
+    fontFamily: fonts.medium,
+    fontSize: fontSizes.md,
+    color: colors.textSecondary,
+  },
+  activeTabText: {
+    color: colors.white,
+    fontWeight: 'bold',
+  },
+  noReportsText: {
+    textAlign: 'center',
+    color: colors.textSecondary,
+    fontFamily: fonts.medium,
+    fontSize: fontSizes.md,
   },
   itemContainer: {
     flexDirection: 'row',
@@ -129,9 +188,5 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#d9534f',
     borderRadius: 8,
-  },
-  deleteText: {
-    color: 'white',
-    fontSize: 16,
   },
 });
