@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { loadFonts } from './assets/fonts/fonts';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import AppNavigator from '../Proyect/navigation/AppNavigator';
 
 SplashScreen.preventAutoHideAsync();
@@ -24,6 +26,12 @@ export default function App() {
     prepare();
   }, []);
 
+      useEffect(() => {
+  if (Platform.OS !== 'web') {
+    Notifications.requestPermissionsAsync();
+  }
+}, []);
+
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
       await SplashScreen.hideAsync();
@@ -36,7 +44,8 @@ export default function App() {
 
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-     return <AppNavigator />;
+      <AppNavigator />
     </View>
+
   );
 }

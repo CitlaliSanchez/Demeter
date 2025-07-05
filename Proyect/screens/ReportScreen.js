@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, Platform } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  Image, Alert, Platform, TextInput, KeyboardAvoidingView
+} from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Buffer } from 'buffer';
+import { getAuth } from 'firebase/auth';
 
 import { generarPDF } from '../utils/pdfGenerador';
 import { supabase } from '../sbClient';
@@ -12,9 +16,15 @@ import { colors, fonts, fontSizes } from '../assets/styles/theme';
 export default function ReportScreen() {
   const [image, setImage] = useState(null);
   const [reportData, setReportData] = useState([]);
+  const [observaciones, setObservaciones] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    generarDatosSimulados(); // cargar últimas 15 mediciones
+    generarDatosSimulados();
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (currentUser) setUserEmail(currentUser.email);
+
     (async () => {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
@@ -26,7 +36,6 @@ export default function ReportScreen() {
   const generarDatosSimulados = () => {
     const hoy = new Date();
     const datos = [];
-
     for (let i = 14; i >= 0; i--) {
       const fecha = new Date(hoy);
       fecha.setDate(hoy.getDate() - i);
@@ -59,11 +68,9 @@ export default function ReportScreen() {
 
   const handleGenerar = async () => {
     try {
-      console.log('Generando PDF...');
-      const pdfUri = await generarPDF(reportData, image);
-
+      const pdfUri = await generarPDF(reportData, image, observaciones, userEmail);
       if (Platform.OS === 'web') {
-        Alert.alert('Aviso', 'PDF generado y descargado en web. La subida a Supabase no está disponible en navegador.');
+        Alert.alert('Aviso', 'PDF generado. La subida a Supabase no está disponible en navegador.');
         return;
       }
 
@@ -72,7 +79,6 @@ export default function ReportScreen() {
       });
 
       const fileName = `reporte-area-a-${Date.now()}.pdf`;
-
       const { error } = await supabase.storage
         .from('reportes')
         .upload(`area-a/${fileName}`, Buffer.from(fileBase64, 'base64'), {
@@ -81,7 +87,6 @@ export default function ReportScreen() {
         });
 
       if (error) {
-        console.error('Error al subir PDF:', error);
         Alert.alert('Error', 'No se pudo subir el reporte: ' + error.message);
       } else {
         Alert.alert('Éxito', `Reporte subido como ${fileName}`);
@@ -93,21 +98,34 @@ export default function ReportScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Image source={require('../assets/logo.png')} style={styles.logo} />
-      <Text style={styles.title}>Generar Reporte del Área A</Text>
-      <Text style={styles.paragraph}>Agrega una foto del cultivo y genera un PDF con las últimas 15 mediciones.</Text>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : null}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <Image source={require('../assets/logo.png')} style={styles.logo} />
+        <Text style={styles.title}>Generar Reporte del Área A</Text>
+        <Text style={styles.paragraph}>Agrega una foto del cultivo, escribe observaciones y genera un PDF.</Text>
 
-      {image && <Image source={{ uri: image }} style={styles.preview} />}
+        {image && <Image source={{ uri: image }} style={styles.preview} />}
 
-      <TouchableOpacity style={styles.button} onPress={pickImage}>
-        <Text style={styles.buttonText}>Tomar Foto del Cultivo</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={pickImage}>
+          <Text style={styles.buttonText}>Tomar Foto del Cultivo</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleGenerar}>
-        <Text style={styles.buttonText}>Generar y Subir PDF</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <Text style={styles.inputLabel}>Observaciones del agricultor</Text>
+        <TextInput
+          style={styles.textArea}
+          multiline
+          numberOfLines={5}
+          value={observaciones}
+          onChangeText={setObservaciones}
+          placeholder="Escribe tus comentarios aquí..."
+          textAlignVertical="top"
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleGenerar}>
+          <Text style={styles.buttonText}>Generar y Subir PDF</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -138,17 +156,32 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   preview: {
-    width: 280,
-    height: 160,
+    width: 260,
+    height: 150,
     borderRadius: 12,
     marginBottom: 16,
+  },
+  inputLabel: {
+    alignSelf: 'flex-start',
+    fontFamily: fonts.medium,
+    fontSize: fontSizes.md,
+    color: colors.text,
+    marginBottom: 6,
+  },
+  textArea: {
+    width: '100%',
+    backgroundColor: '#f1f1f1',
+    padding: 12,
+    borderRadius: 12,
+    fontFamily: fonts.regular,
+    marginBottom: 20,
   },
   button: {
     backgroundColor: colors.clay,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   buttonText: {
     fontFamily: fonts.medium,

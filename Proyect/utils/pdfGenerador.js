@@ -1,10 +1,8 @@
-// utils/pdfGenerador.js
-import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
-import { Asset } from 'expo-asset';
 import moment from 'moment';
-
-export async function generarPDF(data, imageUri) {
+import * as Print from 'expo-print';
+import { Asset } from 'expo-asset';
+export async function generarPDF(data, imageUri, observaciones = '', userEmail = '') {
   const logoAsset = Asset.fromModule(require('../assets/logo.png'));
   await logoAsset.downloadAsync();
 
@@ -28,34 +26,36 @@ export async function generarPDF(data, imageUri) {
           @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
           body {
             font-family: 'Poppins', sans-serif;
-            padding: 20px;
-            font-size: 10px;
+            padding: 30px;
             background-color: #fff;
+            font-size: 11px;
             color: #333;
           }
           .center {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 24px;
           }
           .logo {
-            width: 120px;
+            width: 140px;
             margin-bottom: 10px;
           }
-          .photo {
-            width: 90%;
-            border: 2px solid #A3C585;
-            border-radius: 10px;
-            margin: 10px auto;
-            display: block;
+          h2 {
+            margin: 4px 0 10px 0;
+            font-size: 20px;
+            color: #547326;
+          }
+          .meta {
+            font-size: 10px;
+            color: #888;
           }
           table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 20px;
           }
           th, td {
             border: 1px solid #aaa;
-            padding: 5px;
+            padding: 6px;
             text-align: center;
           }
           th {
@@ -63,12 +63,28 @@ export async function generarPDF(data, imageUri) {
             color: white;
           }
           tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #f9f9f9;
+          }
+          .photo {
+            width: 45%;
+            border: 3px solid #8C5F37;
+            border-radius: 12px;
+            margin-top: 25px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .obs {
+            margin-top: 24px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f8f8f8;
           }
           .footer {
-            margin-top: 16px;
             text-align: center;
             font-size: 9px;
+            margin-top: 30px;
             color: #777;
           }
         </style>
@@ -76,14 +92,10 @@ export async function generarPDF(data, imageUri) {
       <body>
         <div class="center">
           <img src="data:image/png;base64,${logoBase64}" class="logo" />
-          <h2>Reporte de Cultivo - Área A</h2>
-          <p>Generado: ${fecha}</p>
+          <h2>Reporte de Cultivo – Área A</h2>
+          <p class="meta">Generado el: ${fecha}</p>
         </div>
-        ${
-          photoBase64
-            ? `<img src="data:image/jpeg;base64,${photoBase64}" class="photo" />`
-            : ''
-        }
+
         <table>
           <thead>
             <tr>
@@ -105,12 +117,24 @@ export async function generarPDF(data, imageUri) {
               </tr>`).join('')}
           </tbody>
         </table>
-        <div class="footer">Demeter • La Magia del Cultivo</div>
+
+        ${photoBase64
+          ? `<img src="data:image/jpeg;base64,${photoBase64}" class="photo" />`
+          : ''}
+
+        <div class="obs">
+          <h4>Observaciones del agricultor:</h4>
+          <p>${observaciones || 'Sin observaciones registradas.'}</p>
+        </div>
+
+        <div class="footer">
+          Redactado por: ${userEmail || 'Usuario desconocido'} <br />
+          Deméter • La Magia del Cultivo Inteligente
+        </div>
       </body>
     </html>
   `;
 
   const { uri } = await Print.printToFileAsync({ html });
-  console.log('PDF generado en:', uri);
   return uri;
 }

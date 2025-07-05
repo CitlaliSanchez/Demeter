@@ -1,4 +1,4 @@
-//archivo donde se accede a los screens, es el menu que tendra los accesos en la parte inferior
+// archivo donde se accede a los screens, es el menú que tendrá los accesos en la parte inferior
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -6,12 +6,13 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ReportScreen from '../screens/ReportScreen';
+import CropsScreen from '../screens/CropsScreen';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
   return (
-    //seccion de los iconos y como se van marcando cuando cambia de pantalla
+    // sección de los iconos y cómo se van marcando cuando cambia de pantalla
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
@@ -25,7 +26,7 @@ export default function MainTabs() {
             iconName = focused ? 'seedling' : 'seedling';
           } else if (route.name === 'Report') {
             iconName = focused ? 'edit' : 'edit';
-          } 
+          }
 
           return <FontAwesome5 name={iconName} size={24} color={color} />;
         },
@@ -37,5 +38,5 @@ export default function MainTabs() {
       <Tab.Screen name="Crops" component={CropsScreen} />
       <Tab.Screen name="Report" component={ReportScreen} />
     </Tab.Navigator>
-  );//cambio de las pantallas, el nombre es el nombre correcto del archivo 
+  );
 }

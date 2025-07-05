@@ -1,68 +1,129 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, Image, ImageBackground} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  ImageBackground,
+} from 'react-native';
+import * as Notifications from 'expo-notifications';
+import AlertEmergente from './AlertEmergente';
+import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
-// Simularemos conexión y datos al inicio
 export default function HomeScreen() {
   const [connected, setConnected] = useState(false);
   const [readings, setReadings] = useState([]);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [mensaje, setMensaje] = useState('');
+
+  const mensajesDeAlerta = [
+    '¡pH fuera de rango detectado!',
+    '¡Nivel de agua crítico!',
+    '¡Temperatura demasiado alta!',
+    '¡EC fuera de lo esperado!',
+  ];
+
+  const generarMensajeAleatorio = () => {
+    const index = Math.floor(Math.random() * mensajesDeAlerta.length);
+    return mensajesDeAlerta[index];
+  };
+
+  const sendPushNotification = async (mensaje) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Alerta Hidropónica',
+        body: mensaje,
+        sound: 'default',
+      },
+      trigger: null,
+    });
+  };
+
+  const generateReadings = () => {
+    const areas = ['Area A', 'Area B', 'Area C'];
+    let simulated = [];
+    for (let a = 0; a < 3; a++) {
+      for (let i = 0; i < 5; i++) {
+        const ph = (5 + Math.random() * 3).toFixed(2);
+        simulated.push({
+          id: `${a}-${i}`,
+          timestamp: new Date(Date.now() - (i + a * 5) * 60000).toLocaleTimeString(),
+          ph,
+          ec: (1 + Math.random() * 2).toFixed(2),
+          temp: (22 + Math.random() * 5).toFixed(1),
+          nivel: `${Math.floor(Math.random() * 100)}%`,
+          area: areas[a],
+        });
+      }
+    }
+    return simulated;
+  };
 
   useEffect(() => {
-    // Simula la conexión MQTT después de 2 segundos
-    const timeout = setTimeout(() => {
-      setConnected(true);
-    }, 2000);
+    setTimeout(() => setConnected(true), 2000);
+    setReadings(generateReadings());
 
-    // Simula la llegada de lecturas con el random 
-    const simulatedReadings = Array.from({ length: 2 }, (_, i) => ({
-      id: i.toString(),
-      timestamp: new Date(Date.now() - i * 60000).toLocaleTimeString(),
-      ph: (6.5 + Math.random()).toFixed(2),
-      ec: (1.2 + Math.random()).toFixed(2),
-      temp: (22 + Math.random() * 5).toFixed(1),
-      nivel: `${Math.floor(Math.random() * 100)}%`,
-    }));
-    setReadings(simulatedReadings);
+    const lecturaInterval = setInterval(() => {
+      setReadings(generateReadings());
+    }, 60000);
 
-const alerta = simulatedReadings.some(r => parseFloat(r.ph) < 5.5 || parseFloat(r.ph) > 7.0);
-if (alerta) {
-  console.warn('¡Alerta de pH fuera de rango!');
-}
+    const programarAlerta = () => {
+      const tiempo = Math.floor(Math.random() * (30000 - 12000) + 12000);
+      setTimeout(() => {
+        const nuevoMensaje = generarMensajeAleatorio();
+        setMensaje(nuevoMensaje);
+        setAlertVisible(true);
+        sendPushNotification(nuevoMensaje);
+        programarAlerta(); // vuelve a programar
+      }, tiempo);
+    };
+
+    programarAlerta();
+
+    return () => {
+      clearInterval(lecturaInterval);
+    };
   }, []);
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.timestamp}>{item.timestamp}</Text>
-      <Text>pH: {item.ph}</Text>
-      <Text>EC: {item.ec}</Text>
-      <Text>Temp: {item.temp} °C</Text>
-      <Text>Nivel: {item.nivel}</Text>
+      <Text style={styles.timestamp}>{item.timestamp} - {item.area}</Text>
+      <Text style={styles.label}>pH: <Text style={styles.value}>{item.ph}</Text></Text>
+      <Text style={styles.label}>EC: <Text style={styles.value}>{item.ec}</Text></Text>
+      <Text style={styles.label}>Temp: <Text style={styles.value}>{item.temp} °C</Text></Text>
+      <Text style={styles.label}>Nivel: <Text style={styles.value}>{item.nivel}</Text></Text>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-  <ImageBackground
-    source={require('../assets/plants3.jpg')}
-    style={styles.banner}
-    imageStyle={styles.bannerImage}
-  >
-    <Image style={styles.logo} />
-    <Text style={styles.bannerText}>¡Welcome!</Text>
-  </ImageBackground>
+      <ImageBackground
+        source={require('../assets/plants3.jpg')}
+        style={styles.banner}
+        imageStyle={styles.bannerImage}
+      >
+        <Image style={styles.logo} source={require('../assets/logo.png')} />
+        <Text style={styles.bannerText}>Welcome!</Text>
+      </ImageBackground>
 
-  <Text style={[styles.status, { color: connected ? 'green' : 'red' }]}>
-    Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}
-  </Text>
+      <Text style={[styles.status, { color: connected ? colors.lime : colors.danger }]}>Estado MQTT: {connected ? 'Conectado' : 'Desconectado'}</Text>
+      <Text style={styles.title}>Latest Readings</Text>
 
-  <Text style={styles.title}>Latest Readings</Text>
+      <FlatList
+        data={readings}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 30 }}
+      />
 
-  <FlatList
-    data={readings}
-    keyExtractor={(item) => item.id}
-    renderItem={renderItem}
-  />
-</SafeAreaView>
-
+      <AlertEmergente
+        visible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        mensaje={mensaje}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -70,52 +131,66 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
-    paddingTop:0,
+    backgroundColor: colors.background,
   },
   banner: {
-  width: '100%',
-  height: 100,
-  borderRadius: 12,
-  marginBottom: 25,
-  paddingBottom:60,
-  justifyContent: 'center', // centra vertical
-  alignItems: 'center',   
-},
-bannerText: {
-  fontSize: 30,
-  color: '#fff',
-  fontWeight: 'bold',
-  fontFamily: 'Poppins_700Bold', // si estás usando el theme
-  backgroundColor: 'rgba(0,0,0,0.3)',
-  paddingHorizontal: 10,
-  paddingVertical: 0,
-  borderRadius: 10,
-},
-  status: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
+    width: '100%',
+    height: 130,
+    borderRadius: 12,
+    marginBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  card: {
-    backgroundColor: '#dff5e1',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  timestamp: {
-    fontWeight: 'bold',
-    marginBottom: 5,
+  bannerText: {
+    fontSize: fontSizes.xl,
+    color: colors.white,
+    fontFamily: fonts.bold,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   logo: {
-    width: 400,
-    height: 80,
+    width: 320,
+    height: 60,
     resizeMode: 'contain',
+    marginBottom: 4,
+  },
+  status: {
+    fontSize: fontSizes.md,
+    fontFamily: fonts.medium,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: fontSizes.lg,
+    fontFamily: fonts.bold,
     marginBottom: 12,
+    color: colors.forest,
+  },
+  card: {
+    backgroundColor: colors.sand,
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  timestamp: {
+    fontSize: fontSizes.sm,
+    fontFamily: fonts.semiBold,
+    color: colors.textSecondary,
+    marginBottom: 6,
+  },
+  label: {
+    fontFamily: fonts.medium,
+    fontSize: fontSizes.md,
+    color: colors.text,
+  },
+  value: {
+    fontFamily: fonts.bold,
+    color: colors.forest,
   },
 });
