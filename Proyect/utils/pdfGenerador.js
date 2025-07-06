@@ -3,8 +3,8 @@ import moment from 'moment';
 import * as Print from 'expo-print';
 import { Asset } from 'expo-asset';
 
-export async function generarPDF(data, imageUri, observaciones = '', userEmail = '', area = 'Área') {
-  // Carga logo y lo convierte a base64
+export async function generatePDF(data, imageUri, observations = '', userEmail = '', area = 'Area') {
+  // Load logo and convert to base64
   const logoAsset = Asset.fromModule(require('../assets/logo.png'));
   await logoAsset.downloadAsync();
 
@@ -19,7 +19,7 @@ export async function generarPDF(data, imageUri, observaciones = '', userEmail =
     });
   }
 
-  const fecha = moment().format('LLL');
+  const dateGenerated = moment().format('LLL');
 
   const html = `
     <html>
@@ -95,17 +95,17 @@ export async function generarPDF(data, imageUri, observaciones = '', userEmail =
         <div class="center">
           <img src="data:image/png;base64,${logoBase64}" class="logo" />
           <h2>Crop Report – ${area}</h2>
-          <p class="meta">Generated on: ${fecha}</p>
+          <p class="meta">Generated on: ${dateGenerated}</p>
         </div>
 
         <table>
           <thead>
             <tr>
-              <th>Fecha</th>
+              <th>Date</th>
               <th>pH</th>
               <th>EC</th>
               <th>Temp (°C)</th>
-              <th>Nivel</th>
+              <th>Level</th>
             </tr>
           </thead>
           <tbody>
@@ -126,11 +126,11 @@ export async function generarPDF(data, imageUri, observaciones = '', userEmail =
 
         <div class="obs">
           <h4>Farmer's observations:</h4>
-          <p>${observaciones || 'Sin observaciones registradas.'}</p>
+          <p>${observations || 'No observations recorded.'}</p>
         </div>
 
         <div class="footer">
-          Redactado por: ${userEmail || 'Usuario desconocido'} <br />
+          Prepared by: ${userEmail || 'Unknown user'} <br />
           Demeter • The Magic of Smart Growing
         </div>
       </body>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -14,7 +13,7 @@ import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
-// Obtener dimensiones responsivas
+// Get responsive dimensions
 const { width: windowWidth } = Dimensions.get('window');
 const chartWidth = windowWidth - 40;
 
@@ -163,7 +162,7 @@ const AreaCharts = ({ area }) => {
   return (
     <ScrollView contentContainerStyle={styles.tabContent}>
       <View style={styles.headerContainer}>
-        <Text style={styles.areaLabel}>Área {area} Monitoreo</Text>
+        <Text style={styles.areaLabel}>Area {area} Monitoring</Text>
         <View style={styles.timeRangeContainer}>
           {['week', 'month'].map((range) => (
             <TouchableOpacity
@@ -174,7 +173,7 @@ const AreaCharts = ({ area }) => {
               <Text
                 style={[styles.timeRangeText, timeRange === range && styles.activeTimeRangeText]}
               >
-                {range === 'week' ? 'Semanal' : 'Mensual'}
+                {range === 'week' ? 'Weekly' : 'Monthly'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -182,9 +181,9 @@ const AreaCharts = ({ area }) => {
       </View>
 
       <ChartBox data={chartData.ph} labels={labels} color={colors.olive} title="pH" unit="pH" type="line" minRange={5.8} maxRange={6.5} />
-      <ChartBox data={chartData.ec} labels={labels} color={colors.lime} title="Conductividad" unit="dS/m" type="line" minRange={1.5} maxRange={2.0} />
-      <ChartBox data={chartData.temp} labels={labels} color={colors.clay} title="Temperatura" unit="°C" type="line" minRange={22} maxRange={26} />
-      <ChartBox data={chartData.water} labels={labels} color={colors.forest} title="Nivel Agua" unit="%" type="bar" minRange={70} maxRange={90} />
+      <ChartBox data={chartData.ec} labels={labels} color={colors.lime} title="Conductivity" unit="dS/m" type="line" minRange={1.5} maxRange={2.0} />
+      <ChartBox data={chartData.temp} labels={labels} color={colors.clay} title="Temperature" unit="°C" type="line" minRange={22} maxRange={26} />
+      <ChartBox data={chartData.water} labels={labels} color={colors.forest} title="Water Level" unit="%" type="bar" minRange={70} maxRange={90} />
     </ScrollView>
   );
 };
@@ -193,9 +192,9 @@ export default function ChartsScreen() {
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
   const [routes] = useState([
-    { key: 'A', title: 'Área A' },
-    { key: 'B', title: 'Área B' },
-    { key: 'C', title: 'Área C' },
+    { key: 'A', title: 'Area A' },
+    { key: 'B', title: 'Area B' },
+    { key: 'C', title: 'Area C' },
   ]);
 
   const renderScene = SceneMap({

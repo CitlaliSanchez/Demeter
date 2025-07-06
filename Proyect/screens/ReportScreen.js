@@ -18,10 +18,10 @@ export default function ReportScreen() {
   const [reportData, setReportData] = useState([]);
   const [observaciones, setObservaciones] = useState('');
   const [userEmail, setUserEmail] = useState('');
-  const area = 'Area A'; // Aquí podrías luego hacerlo dinámico
+  const area = 'Area A'; // You could make this dynamic later
 
   useEffect(() => {
-    generarDatosSimulados();
+    generateMockData();
     const auth = getAuth();
     const currentUser = auth.currentUser;
     if (currentUser) setUserEmail(currentUser.email);
@@ -29,26 +29,26 @@ export default function ReportScreen() {
     (async () => {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permiso requerido', 'Activa el permiso de cámara para tomar fotos del cultivo.');
+        Alert.alert('Permission Required', 'Please enable camera access to take crop photos.');
       }
     })();
   }, []);
 
-  const generarDatosSimulados = () => {
-    const hoy = new Date();
-    const datos = [];
+  const generateMockData = () => {
+    const today = new Date();
+    const data = [];
     for (let i = 14; i >= 0; i--) {
-      const fecha = new Date(hoy);
-      fecha.setDate(hoy.getDate() - i);
-      datos.push({
-        date: fecha.toISOString().split('T')[0],
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      data.push({
+        date: date.toISOString().split('T')[0],
         ph: (6.5 + Math.random() * 0.4).toFixed(2),
         ec: (1.2 + Math.random() * 0.5).toFixed(2),
         temp: (23 + Math.random() * 3).toFixed(1),
         nivel: `${70 + Math.floor(Math.random() * 10)}%`,
       });
     }
-    setReportData(datos);
+    setReportData(data);
   };
 
   const pickImage = async () => {
@@ -67,11 +67,11 @@ export default function ReportScreen() {
     }
   };
 
-  const handleGenerar = async () => {
+  const handleGenerate = async () => {
     try {
       const pdfUri = await generarPDF(reportData, image, observaciones, userEmail, area);
       if (Platform.OS === 'web') {
-        Alert.alert('Aviso', 'PDF generado. La subida a Supabase no está disponible en navegador.');
+        Alert.alert('Notice', 'PDF generated. Upload to Supabase is not available on web browser.');
         return;
       }
 
@@ -79,7 +79,7 @@ export default function ReportScreen() {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const fileName = `reporte-${area.toLowerCase().replace(' ', '-')}-${Date.now()}.pdf`;
+      const fileName = `report-${area.toLowerCase().replace(' ', '-')}-${Date.now()}.pdf`;
 
       const { error } = await supabase.storage
         .from('reportes')
@@ -89,13 +89,13 @@ export default function ReportScreen() {
         });
 
       if (error) {
-        Alert.alert('Error', 'No se pudo subir el reporte: ' + error.message);
+        Alert.alert('Error', 'Failed to upload report: ' + error.message);
       } else {
-        Alert.alert('Éxito', `Reporte subido como ${fileName}`);
+        Alert.alert('Success', `Report uploaded as ${fileName}`);
       }
     } catch (err) {
-      console.error('Error en handleGenerar:', err);
-      Alert.alert('Error', 'Ocurrió un problema al generar o subir el PDF.');
+      console.error('Error in handleGenerate:', err);
+      Alert.alert('Error', 'There was a problem generating or uploading the PDF.');
     }
   };
 
@@ -123,7 +123,7 @@ export default function ReportScreen() {
           textAlignVertical="top"
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleGenerar}>
+        <TouchableOpacity style={styles.button} onPress={handleGenerate}>
           <Text style={styles.buttonText}>Generate and Upload PDF</Text>
         </TouchableOpacity>
       </ScrollView>

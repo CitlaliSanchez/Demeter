@@ -11,7 +11,8 @@ import { useNavigation } from '@react-navigation/native';
 import MainTabs from './MainTabs';
 import HistoryScreen from '../screens/HistoryScreen';
 import ChartsScreen from '../screens/ChartsScreen';
-import MisReportesScreen from '../screens/myreportScreen';
+import MyReportsScreen from '../screens/myreportScreen';
+import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
 const Drawer = createDrawerNavigator();
 
@@ -24,7 +25,7 @@ function CustomDrawerContent(props) {
         navigation.replace('Login');
       })
       .catch((error) => {
-        console.error('Error al cerrar sesión:', error);
+        console.error('Error signing out:', error);
       });
   };
 
@@ -32,7 +33,7 @@ function CustomDrawerContent(props) {
     <DrawerContentScrollView {...props}>
       <DrawerItemList {...props} />
       <DrawerItem
-        label="Cerrar sesión"
+        label="Log out"
         onPress={handleLogout}
         labelStyle={{ color: 'red' }}
       />
@@ -43,33 +44,33 @@ function CustomDrawerContent(props) {
 export default function MainDrawer() {
   return (
     <Drawer.Navigator
-      initialRouteName="Inicio"
+      initialRouteName="Home"
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: true,
         drawerActiveTintColor: '#547326',
         drawerLabelStyle: {
-          fontFamily: 'Poppins_500Medium',
+          fontFamily: fonts.semiBold,
         },
       }}
     >
       <Drawer.Screen
-        name="Inicio"
+        name="Home"
         component={MainTabs}
-        options={{ drawerLabel: 'Pantalla Principal' }}
+        options={{ drawerLabel: 'Main Screen' }}
       />
       <Drawer.Screen
-        name="Historial de Mediciones"
+        name="Measurement History"
         component={HistoryScreen}
       />
       <Drawer.Screen
-        name="Gráficas"
+        name="Charts"
         component={ChartsScreen}
       />
       <Drawer.Screen
-        name="Mis Reportes"
-        component={MisReportesScreen}
-        options={{ drawerLabel: 'Mis Reportes PDF' }}
+        name="My Reports"
+        component={MyReportsScreen}
+        options={{ drawerLabel: 'My PDF Reports' }}
       />
     </Drawer.Navigator>
   );

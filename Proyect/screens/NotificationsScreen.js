@@ -1,17 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
-//hola
 
 const notifications = [
-  { id: '1', message: 'Nivel bajo en Área B', type: 'warning' },
-  { id: '2', message: 'pH crítico en Área A', type: 'danger' },
+  { id: '1', message: 'Low level in Area B', type: 'warning' },
+  { id: '2', message: 'Critical pH in Area A', type: 'danger' },
 ];
 
 export default function NotificationsScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Notificaciones</Text>
+      <Text style={styles.title}>Notifications</Text>
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}

@@ -15,12 +15,12 @@ export default function AlertEmergente({ visible, onClose, mensaje }) {
     <Modal transparent visible={visible} animationType="slide">
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          {/* Logo principal */}
+          {/* Main logo */}
           <Image
             source={require('../assets/logo.png')}
             style={styles.logo}
           />
-          {/* Imagen adicional (dimitri-06.png) */}
+          {/* Additional image (dimitri-06.png) */}
           <Image
             source={require('../assets/dimitri-06.png')}
             style={styles.avatar}
@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     resizeMode: 'cover',
     backgroundColor: 'transparent',
-
   },
   mensaje: {
     color: '#fff',

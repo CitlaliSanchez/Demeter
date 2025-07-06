@@ -35,8 +35,8 @@ export default function MisReportesScreen() {
       );
       setReportes(archivos.filter(item => item !== null));
     } else {
-      console.error('Error al obtener reportes:', error?.message);
-      Alert.alert('Error', 'No se pudieron cargar los reportes.');
+      console.error('Error fetching reports:', error?.message);
+      Alert.alert('Error', 'Failed to load reports.');
       setReportes([]);
     }
     setLoading(false);
@@ -54,17 +54,17 @@ export default function MisReportesScreen() {
 
   const handleDelete = (fileName) => {
     Alert.alert(
-      'Eliminar reporte',
-      `¿Seguro que deseas eliminar el archivo "${fileName}"?`,
+      'Delete Report',
+      `Are you sure you want to delete the file "${fileName}"?`,
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             const { error } = await supabase.storage.from('reportes').remove([`${selectedArea}/${fileName}`]);
             if (error) {
-              Alert.alert('Error', 'No se pudo eliminar el archivo');
+              Alert.alert('Error', 'Could not delete the file');
               return;
             }
             setReportes((prev) => prev.filter((r) => r.name !== fileName));
@@ -76,9 +76,9 @@ export default function MisReportesScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Reports PDF</Text>
+      <Text style={styles.title}>My PDF Reports</Text>
 
-      {/* Selector de área */}
+      {/* Area selector */}
       <View style={styles.tabs}>
         {AREAS.map(area => (
           <TouchableOpacity
@@ -96,7 +96,7 @@ export default function MisReportesScreen() {
       {loading ? (
         <ActivityIndicator size="large" color={colors.olive} />
       ) : reportes.length === 0 ? (
-        <Text style={styles.noReportsText}>No hay reportes para {selectedArea.toUpperCase().replace('-', ' ')}.</Text>
+        <Text style={styles.noReportsText}>No reports available for {selectedArea.toUpperCase().replace('-', ' ')}.</Text>
       ) : (
         <FlatList
           data={reportes}

@@ -27,7 +27,7 @@ export default function TestAlert() {
   if (!fontsLoaded) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Cargando fuentes...</Text>
+        <Text style={styles.loadingText}>Loading fonts...</Text>
       </View>
     );
   }
@@ -35,13 +35,13 @@ export default function TestAlert() {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={() => setVisible(true)}>
-        <Text style={styles.buttonText}>Mostrar Alerta</Text>
+        <Text style={styles.buttonText}>Show Alert</Text>
       </TouchableOpacity>
 
       <AlertEmergente
         visible={visible}
         onClose={() => setVisible(false)}
-        mensaje="¡Revisa Ph de Area A!"
+        mensaje="Check pH in Area A!"
       />
     </View>
   );
