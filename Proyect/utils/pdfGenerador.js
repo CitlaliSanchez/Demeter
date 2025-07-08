@@ -5,7 +5,7 @@ import { Asset } from 'expo-asset';
 
 export async function generatePDF(data, imageUri, observations = '', userEmail = '', area = 'Area') {
   // Load logo and convert to base64
-  const logoAsset = Asset.fromModule(require('../assets/logo.png'));
+  const logoAsset = Asset.fromModule(require('../assets/logodemujer.png'));
   await logoAsset.downloadAsync();
 
   const logoBase64 = await FileSystem.readAsStringAsync(logoAsset.localUri || '', {

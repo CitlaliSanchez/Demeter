@@ -8,17 +8,21 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Buffer } from 'buffer';
 import { getAuth } from 'firebase/auth';
+import { Picker } from '@react-native-picker/picker';
 
 import { generarPDF } from '../utils/pdfGenerador';
 import { supabase } from '../sbClient';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
+
+const AREAS = ['Area A', 'Area B', 'Area C'];
 
 export default function ReportScreen() {
   const [image, setImage] = useState(null);
   const [reportData, setReportData] = useState([]);
   const [observaciones, setObservaciones] = useState('');
   const [userEmail, setUserEmail] = useState('');
-  const area = 'Area A'; // You could make this dynamic later
+  const [selectedArea, setSelectedArea] = useState(AREAS[0]);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     generateMockData();
@@ -26,13 +30,15 @@ export default function ReportScreen() {
     const currentUser = auth.currentUser;
     if (currentUser) setUserEmail(currentUser.email);
 
-    (async () => {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission Required', 'Please enable camera access to take crop photos.');
-      }
-    })();
+    requestPermissions();
   }, []);
+
+  const requestPermissions = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please enable camera access to take crop photos.');
+    }
+  };
 
   const generateMockData = () => {
     const today = new Date();
@@ -52,24 +58,32 @@ export default function ReportScreen() {
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 0.6,
-    });
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.6,
+      });
 
-    if (!result.canceled) {
-      const manipResult = await ImageManipulator.manipulateAsync(
-        result.assets[0].uri,
-        [],
-        { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
-      );
-      setImage(manipResult.uri);
+      if (!result.canceled) {
+        const manipResult = await ImageManipulator.manipulateAsync(
+          result.assets[0].uri,
+          [],
+          { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
+        );
+        setImage(manipResult.uri);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to take photo: ' + error.message);
     }
   };
 
   const handleGenerate = async () => {
+    if (isGenerating) return;
+    
+    setIsGenerating(true);
     try {
-      const pdfUri = await generarPDF(reportData, image, observaciones, userEmail, area);
+      const pdfUri = await generarPDF(reportData, image, observaciones, userEmail, selectedArea);
+      
       if (Platform.OS === 'web') {
         Alert.alert('Notice', 'PDF generated. Upload to Supabase is not available on web browser.');
         return;
@@ -79,40 +93,77 @@ export default function ReportScreen() {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const fileName = `report-${area.toLowerCase().replace(' ', '-')}-${Date.now()}.pdf`;
+      const fileName = `report-${selectedArea.toLowerCase().replace(' ', '-')}-${Date.now()}.pdf`;
 
       const { error } = await supabase.storage
         .from('reportes')
-        .upload(`${area.toLowerCase().replace(' ', '-')}/${fileName}`, Buffer.from(fileBase64, 'base64'), {
+        .upload(`${selectedArea.toLowerCase().replace(' ', '-')}/${fileName}`, Buffer.from(fileBase64, 'base64'), {
           contentType: 'application/pdf',
           upsert: true,
         });
 
       if (error) {
-        Alert.alert('Error', 'Failed to upload report: ' + error.message);
-      } else {
-        Alert.alert('Success', `Report uploaded as ${fileName}`);
+        throw error;
       }
+
+      Alert.alert('Success', `Report for ${selectedArea} uploaded successfully!`);
+      setImage(null);
+      setObservaciones('');
     } catch (err) {
       console.error('Error in handleGenerate:', err);
-      Alert.alert('Error', 'There was a problem generating or uploading the PDF.');
+      Alert.alert('Error', 'There was a problem generating or uploading the PDF: ' + err.message);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : null}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Image source={require('../assets/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Generate Report {area}</Text>
-        <Text style={styles.paragraph}>Add a photo of the crop, write your observations, and generate a PDF</Text>
+        <View style={styles.header}>
+          <Image source={require('../assets/logodemujer.png')} style={styles.logo} />
+          <Image source={require('../assets/dimitri-01.png')} style={styles.avatar} />
+        </View>
+        
+        <Text style={styles.title}>Generate Crop Report</Text>
+        <Text style={styles.paragraph}>Add a photo, write observations, and generate PDF report</Text>
 
-        {image && <Image source={{ uri: image }} style={styles.preview} />}
+        <View style={styles.areaSelector}>
+          <Text style={styles.inputLabel}>Select Area:</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedArea}
+              onValueChange={(itemValue) => setSelectedArea(itemValue)}
+              style={styles.picker}
+              dropdownIconColor={colors.forest}
+              mode="dropdown"
+            >
+              {AREAS.map(area => (
+                <Picker.Item key={area} label={area} value={area} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        {image && (
+          <View style={styles.imageContainer}>
+            <Image source={{ uri: image }} style={styles.preview} />
+            <TouchableOpacity 
+              style={styles.removeImageButton} 
+              onPress={() => setImage(null)}
+            >
+              <Text style={styles.removeImageText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <TouchableOpacity style={styles.button} onPress={pickImage}>
-          <Text style={styles.buttonText}>Take a photo of the crop</Text>
+          <Text style={styles.buttonText}>
+            {image ? 'Retake Photo' : 'Take Photo of Crop'}
+          </Text>
         </TouchableOpacity>
 
-        <Text style={styles.inputLabel}>Farmer's observations</Text>
+        <Text style={styles.inputLabel}>Farmer's Observations</Text>
         <TextInput
           style={styles.textArea}
           multiline
@@ -120,11 +171,18 @@ export default function ReportScreen() {
           value={observaciones}
           onChangeText={setObservaciones}
           placeholder="Write your comments here..."
+          placeholderTextColor="#888"
           textAlignVertical="top"
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleGenerate}>
-          <Text style={styles.buttonText}>Generate and Upload PDF</Text>
+        <TouchableOpacity 
+          style={[styles.button, styles.generateButton, isGenerating && styles.disabledButton]} 
+          onPress={handleGenerate}
+          disabled={isGenerating}
+        >
+          <Text style={styles.buttonText}>
+            {isGenerating ? 'Generating...' : 'Generate and Upload PDF'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -137,31 +195,78 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.background,
     flexGrow: 1,
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
   },
   logo: {
     width: 200,
     height: 60,
     resizeMode: 'contain',
-    marginBottom: 20,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain', // Cambiado para mostrar la imagen completa
   },
   title: {
     fontFamily: fonts.bold,
     fontSize: fontSizes.xl,
     color: colors.forest,
     marginBottom: 10,
+    textAlign: 'center',
   },
   paragraph: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.md,
     color: colors.text,
     textAlign: 'center',
+    marginBottom: 25,
+    paddingHorizontal: 20,
+  },
+  areaSelector: {
+    width: '100%',
     marginBottom: 20,
   },
-  preview: {
-    width: 260,
-    height: 150,
+  pickerContainer: {
+    backgroundColor: '#f1f1f1',
     borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 6,
+  },
+  picker: {
+    width: '100%',
+    height: 50,
+  },
+  imageContainer: {
+    position: 'relative',
     marginBottom: 16,
+  },
+  preview: {
+    width: 280,
+    height: 180,
+    borderRadius: 12,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeImageText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   inputLabel: {
     alignSelf: 'flex-start',
@@ -176,14 +281,25 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     fontFamily: fonts.regular,
-    marginBottom: 20,
+    marginBottom: 25,
+    minHeight: 120,
+    fontSize: fontSizes.md,
   },
   button: {
     backgroundColor: colors.clay,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  generateButton: {
+    backgroundColor: colors.forest,
+    marginTop: 10,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
   buttonText: {
     fontFamily: fonts.medium,

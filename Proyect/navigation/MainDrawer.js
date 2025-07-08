@@ -10,7 +10,6 @@ import { useNavigation } from '@react-navigation/native';
 
 import MainTabs from './MainTabs';
 import HistoryScreen from '../screens/HistoryScreen';
-import ChartsScreen from '../screens/ChartsScreen';
 import MyReportsScreen from '../screens/myreportScreen';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
@@ -62,10 +61,6 @@ export default function MainDrawer() {
       <Drawer.Screen
         name="Measurement History"
         component={HistoryScreen}
-      />
-      <Drawer.Screen
-        name="Charts"
-        component={ChartsScreen}
       />
       <Drawer.Screen
         name="My Reports"

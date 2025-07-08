@@ -134,7 +134,7 @@ export default function LoginScreen({ navigation }) {
       >
         {/* LOGO ANIMADO */}
         <Animated.Image
-          source={require('../assets/logo.png')}
+          source={require('../assets/logodemujer.png')}
           style={[
             styles.logo,
             {

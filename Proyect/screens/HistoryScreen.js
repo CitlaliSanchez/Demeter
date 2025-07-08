@@ -8,113 +8,106 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import * as Font from 'expo-font';
+import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
+import config from '../utils/configIP';
 
 const AREAS = ['A', 'B', 'C'];
-
-async function loadFonts() {
-  await Font.loadAsync({
-    [fonts.regular]: {
-      uri: 'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2',
-      display: Font.FontDisplay.FALLBACK,
-    },
-    [fonts.medium]: {
-      uri: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6Z1xlFQ.woff2',
-      display: Font.FontDisplay.FALLBACK,
-    },
-    [fonts.bold]: {
-      uri: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLBT5Z1xlFQ.woff2',
-      display: Font.FontDisplay.FALLBACK,
-    },
-  });
-}
-
-const generateMockData = (area) => {
-  const today = new Date();
-  return Array.from({ length: 15 }, (_, i) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-
-    return {
-      id: `${area}-${i}`,
-      area,
-      date: date.toISOString().split('T')[0],
-      ph: (5.8 + Math.random() * 2).toFixed(2),
-      ec: (1.0 + Math.random() * 1.2).toFixed(2),
-      temp: (22 + Math.random() * 5).toFixed(1),
-      water: `${Math.floor(Math.random() * 41 + 60)}%`,
-    };
-  });
-};
 
 export default function HistoryScreen() {
   const [data, setData] = useState([]);
   const [searchDate, setSearchDate] = useState('');
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get historical data from MongoDB
+      const response = await axios.get(`${config.API_BASE_URL}/api/sensors`);
+      
+      if (response.data && response.data.length > 0) {
+        // Format data to match expected structure
+        
+        const formattedData = response.data.map(item => {
+  const values = item.values || item; // Si no hay `values`, usa el objeto directo
+  return {
+    id: item._id,
+    area: item.area.replace('Area ', ''),
+    date: new Date(item.createdAt).toISOString().split('T')[0],
+    ph: values.ph ? values.ph.toFixed(2) : '0.00',
+    ec: values.conductivity ? values.conductivity.toFixed(2) : '0.00',
+    temp: values.water_temp ? values.water_temp.toFixed(1) : '0.0',
+    water: values.water_level ? `${Math.round(values.water_level)}%` : '0%'
+  };
+});
+        
+        setData(formattedData);
+      } else {
+        setData([]);
+        setError('No historical data available');
+      }
+    } catch (err) {
+      console.error('Error fetching history:', err);
+      setError('Error loading historical data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    loadFonts().then(() => setFontsLoaded(true));
-    const allData = AREAS.flatMap((area) => generateMockData(area));
-    setData(allData);
+    fetchData();
   }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
 
   const handlePDF = async (areaData, areaLabel) => {
     const html = `
       <html>
         <head>
           <style>
-            @font-face {
-              font-family: 'Poppins';
-              src: url('https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2') format('woff2');
-              font-weight: 400;
-              font-style: normal;
-            }
-            @font-face {
-              font-family: 'Poppins';
-              src: url('https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6Z1xlFQ.woff2') format('woff2');
-              font-weight: 500;
-              font-style: normal;
-            }
-            @font-face {
-              font-family: 'Poppins';
-              src: url('https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLBT5Z1xlFQ.woff2') format('woff2');
-              font-weight: 700;
-              font-style: normal;
-            }
-            
             body { 
-              font-family: 'Poppins', sans-serif; 
+              font-family: Arial, sans-serif; 
               padding: 30px; 
-              background: ${colors.background}; 
-              color: ${colors.text}; 
+              background: #f8f9fa; 
+              color: #333; 
             }
             .header { 
               text-align: center; 
               margin-bottom: 30px;
               padding-bottom: 20px;
-              border-bottom: 1px solid ${colors.border};
+              border-bottom: 1px solid #ddd;
             }
             h1 { 
-              color: ${colors.forest}; 
+              color: #4F772D; 
               margin-bottom: 8px; 
-              font-weight: 700;
+              font-weight: bold;
               font-size: 24px;
             }
             h2 { 
               font-weight: 500; 
               margin-bottom: 0; 
-              color: ${colors.textSecondary}; 
+              color: #6c757d; 
               font-size: 16px;
             }
             .report-info {
               display: flex;
               justify-content: space-between;
               margin-top: 15px;
-              color: ${colors.textSecondary};
+              color: #6c757d;
               font-size: 14px;
             }
             table { 
@@ -124,36 +117,31 @@ export default function HistoryScreen() {
               box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             }
             th, td { 
-              border: 1px solid ${colors.border}; 
+              border: 1px solid #ddd; 
               padding: 12px 15px; 
               text-align: center; 
               font-size: 14px; 
             }
             th { 
-              background-color: ${colors.forest}; 
-              color: ${colors.white}; 
-              font-weight: 700;
-              letter-spacing: 0.5px;
+              background-color: #4F772D; 
+              color: white; 
+              font-weight: bold;
             }
             tr:nth-child(even) { 
-              background-color: #f9fafb; 
-            }
-            tr:hover {
-              background-color: #f3f4f6;
+              background-color: #f9f9f9; 
             }
             .footer { 
               text-align: center; 
               margin-top: 40px; 
               font-size: 12px; 
-              color: ${colors.textSecondary};
+              color: #6c757d;
               padding-top: 20px;
-              border-top: 1px solid ${colors.border};
+              border-top: 1px solid #ddd;
             }
             .logo {
-              color: ${colors.olive};
-              font-weight: 700;
+              color: #6A994E;
+              font-weight: bold;
               font-size: 14px;
-              letter-spacing: 1px;
             }
           </style>
         </head>
@@ -163,7 +151,7 @@ export default function HistoryScreen() {
             <h2>Measurement History - Area ${areaLabel}</h2>
             <div class="report-info">
               <span>Generated: ${new Date().toLocaleDateString()}</span>
-              <span>Total Records: ${areaData.length}</span>
+              <span>Records: ${areaData.length}</span>
             </div>
           </div>
           
@@ -195,7 +183,7 @@ export default function HistoryScreen() {
           
           <div class="footer">
             <div class="logo">DEMETER</div>
-            <div>Smart Hydroponics Monitoring System</div>
+            <div>Hydroponic Monitoring System</div>
           </div>
         </body>
       </html>
@@ -209,7 +197,7 @@ export default function HistoryScreen() {
       });
       await Sharing.shareAsync(uri, {
         mimeType: 'application/pdf',
-        dialogTitle: `Share Area ${areaLabel} Report`,
+        dialogTitle: `Area ${areaLabel} Report`,
         UTI: 'com.adobe.pdf'
       });
     } catch (error) {
@@ -220,7 +208,10 @@ export default function HistoryScreen() {
   const renderCard = (item) => (
     <View style={styles.card} key={item.id}>
       <View style={styles.cardHeader}>
-        <Text style={styles.date}>{item.date}</Text>
+        <View style={styles.dateContainer}>
+          <Ionicons name="calendar" size={16} color={colors.textSecondary} />
+          <Text style={styles.date}>{item.date}</Text>
+        </View>
         <View style={[styles.areaBadge, { backgroundColor: getAreaColor(item.area) }]}>
           <Text style={styles.areaText}>Area {item.area}</Text>
         </View>
@@ -228,20 +219,44 @@ export default function HistoryScreen() {
       
       <View style={styles.metricsContainer}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Temperature</Text>
+          <View style={styles.metricHeader}>
+            <Ionicons name="thermometer" size={14} color={colors.clay} />
+            <Text style={styles.metricLabel}>Temperature</Text>
+          </View>
           <Text style={styles.metricValue}>{item.temp}°C</Text>
         </View>
+        
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>pH Level</Text>
-          <Text style={styles.metricValue}>{item.ph}</Text>
+          <View style={styles.metricHeader}>
+            <Ionicons name="water" size={14} color={colors.olive} />
+            <Text style={styles.metricLabel}>pH Level</Text>
+          </View>
+          <Text style={[
+            styles.metricValue,
+            (parseFloat(item.ph) < 5.8 || parseFloat(item.ph) > 6.5) ? { color: colors.danger } : null
+          ]}>{item.ph}</Text>
         </View>
+        
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>EC</Text>
-          <Text style={styles.metricValue}>{item.ec}</Text>
+          <View style={styles.metricHeader}>
+            <Ionicons name="flash" size={14} color={colors.lime} />
+            <Text style={styles.metricLabel}>Conductivity</Text>
+          </View>
+          <Text style={[
+            styles.metricValue,
+            (parseFloat(item.ec) < 1.5 || parseFloat(item.ec) > 2.0) ? { color: colors.danger } : null
+          ]}>{item.ec} dS/m</Text>
         </View>
+        
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Water</Text>
-          <Text style={styles.metricValue}>{item.water}</Text>
+          <View style={styles.metricHeader}>
+            <Ionicons name="beaker" size={14} color={colors.forest} />
+            <Text style={styles.metricLabel}>Water Level</Text>
+          </View>
+          <Text style={[
+            styles.metricValue,
+            (parseInt(item.water) < 70 || parseInt(item.water) > 90) ? { color: colors.danger } : null
+          ]}>{item.water}</Text>
         </View>
       </View>
     </View>
@@ -261,10 +276,15 @@ export default function HistoryScreen() {
             <Text style={styles.recordCount}>{filtered.length} records</Text>
           </View>
           <TouchableOpacity
-            style={styles.exportButton}
+            style={[
+              styles.exportButton,
+              filtered.length === 0 && styles.disabledButton
+            ]}
             onPress={() => handlePDF(filtered, area)}
+            disabled={filtered.length === 0}
           >
-            <Text style={styles.exportButtonText}>Export PDF</Text>
+            <Ionicons name="download" size={16} color={colors.white} />
+            <Text style={styles.exportButtonText}>Export</Text>
           </TouchableOpacity>
         </View>
         
@@ -278,6 +298,7 @@ export default function HistoryScreen() {
           />
         ) : (
           <View style={styles.emptyState}>
+            <Ionicons name="alert-circle" size={24} color={colors.textSecondary} />
             <Text style={styles.emptyText}>No data available</Text>
           </View>
         )}
@@ -285,49 +306,74 @@ export default function HistoryScreen() {
     );
   };
 
-  if (!fontsLoaded) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={{ fontFamily: fonts.regular }}>Loading...</Text>
+        <ActivityIndicator size="large" color={colors.olive} />
+        <Text style={styles.loadingText}>Loading historical data...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={styles.scroll}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[colors.olive]}
+          tintColor={colors.olive}
+        />
+      }
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Measurement History</Text>
-        <Text style={styles.subtitle}>Track your hydroponics system metrics</Text>
+        <Text style={styles.subtitle}>Hydroponic system metrics record</Text>
       </View>
       
       <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Filter by date (YYYY-MM-DD)"
-          placeholderTextColor={colors.textSecondary}
-          style={styles.input}
-          value={searchDate}
-          onChangeText={setSearchDate}
-        />
-        {searchDate ? (
-          <TouchableOpacity 
-            style={styles.clearButton}
-            onPress={() => setSearchDate('')}
-          >
-            <Text style={styles.clearButtonText}>Clear</Text>
-          </TouchableOpacity>
-        ) : null}
+        <View style={styles.inputContainer}>
+          <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+          <TextInput
+            placeholder="Filter by date (YYYY-MM-DD)"
+            placeholderTextColor={colors.textSecondary}
+            style={styles.input}
+            value={searchDate}
+            onChangeText={setSearchDate}
+          />
+          {searchDate ? (
+            <TouchableOpacity 
+              style={styles.clearButton}
+              onPress={() => setSearchDate('')}
+            >
+              <Ionicons name="close" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
       
-      {AREAS.map((area) => renderSection(area))}
+      {error && !loading ? (
+        <View style={styles.errorContainer}>
+          <Ionicons name="warning" size={24} color={colors.danger} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        AREAS.map((area) => renderSection(area))
+      )}
     </ScrollView>
   );
 }
 
 const getAreaColor = (area) => {
   const colors = {
-    'A': '#4F772D',
-    'B': '#66A649',
-    'C': '#8C5F37'
+    'A': '#4F772D',  // Dark green
+    'B': '#66A649',  // Light green
+    'C': '#8C5F37'   // Brown
   };
   return colors[area] || '#4F772D';
 };
@@ -341,6 +387,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  loadingText: {
+    fontFamily: fonts.medium,
+    fontSize: fontSizes.md,
+    color: colors.textSecondary,
+    marginTop: 16,
   },
   scroll: {
     padding: 20,
@@ -350,7 +403,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: fontSizes.xl,
+    fontSize: fontSizes.xxl,
     fontFamily: fonts.bold,
     color: colors.forest,
     marginBottom: 4,
@@ -361,20 +414,14 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 24,
   },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 16,
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.md,
-    color: colors.text,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.white,
+    borderRadius: 12,
+    paddingHorizontal: 16,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -387,14 +434,18 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  clearButton: {
-    marginLeft: 10,
-    padding: 10,
+  searchIcon: {
+    marginRight: 8,
   },
-  clearButtonText: {
-    fontFamily: fonts.medium,
-    color: colors.forest,
+  input: {
+    flex: 1,
+    height: 50,
+    fontFamily: fonts.regular,
     fontSize: fontSizes.md,
+    color: colors.text,
+  },
+  clearButton: {
+    marginLeft: 8,
   },
   section: {
     marginBottom: 32,
@@ -408,6 +459,7 @@ const styles = StyleSheet.create({
   areaHeader: {
     borderLeftWidth: 4,
     paddingLeft: 12,
+    flex: 1,
   },
   sectionTitle: {
     fontFamily: fonts.bold,
@@ -423,7 +475,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 16,
-    padding: 0,
     marginBottom: 16,
     overflow: 'hidden',
     ...Platform.select({
@@ -443,19 +494,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    paddingBottom: 12,
     backgroundColor: '#f8f9fa',
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   date: {
     fontFamily: fonts.medium,
     fontSize: fontSizes.md,
     color: colors.text,
+    marginLeft: 8,
   },
   areaBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   areaText: {
@@ -466,17 +521,23 @@ const styles = StyleSheet.create({
   metricsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 12,
+    padding: 16,
   },
   metricItem: {
     width: '50%',
     padding: 8,
+    marginBottom: 8,
+  },
+  metricHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   metricLabel: {
     fontFamily: fonts.regular,
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
-    marginBottom: 4,
+    marginLeft: 6,
   },
   metricValue: {
     fontFamily: fonts.bold,
@@ -501,6 +562,10 @@ const styles = StyleSheet.create({
         elevation: 3,
       },
     }),
+  },
+  disabledButton: {
+    backgroundColor: colors.textSecondary,
+    opacity: 0.7,
   },
   exportButtonText: {
     fontFamily: fonts.medium,
@@ -532,6 +597,34 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: fonts.regular,
     color: colors.textSecondary,
+    fontSize: fontSizes.md,
+    marginTop: 8,
+  },
+  errorContainer: {
+    backgroundColor: '#FFF0F0',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  errorText: {
+    fontFamily: fonts.medium,
+    color: colors.danger,
+    fontSize: fontSizes.md,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: colors.olive,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    fontFamily: fonts.medium,
+    color: colors.white,
     fontSize: fontSizes.md,
   },
 });

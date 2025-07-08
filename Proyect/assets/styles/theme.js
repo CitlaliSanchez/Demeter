@@ -3,7 +3,6 @@ export const colors = {
   lime: '#66A649',
   olive: '#547326',
   fern: '#5DBB63',
-
   clay: '#8C5F37',
   sand: '#F2CDA0',
   white: '#FFFFFF',

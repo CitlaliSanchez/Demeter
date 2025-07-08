@@ -6,7 +6,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ReportScreen from '../screens/ReportScreen';
-import CropsScreen from '../screens/CropsScreen';
+import ChartsScreen from '../screens/ChartsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,7 +22,7 @@ export default function MainTabs() {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home';
-          } else if (route.name === 'Crops') {
+          } else if (route.name === 'Charts') {
             iconName = focused ? 'seedling' : 'seedling';
           } else if (route.name === 'Report') {
             iconName = focused ? 'edit' : 'edit';
@@ -35,7 +35,7 @@ export default function MainTabs() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Crops" component={CropsScreen} />
+      <Tab.Screen name="Charts" component={ChartsScreen} />
       <Tab.Screen name="Report" component={ReportScreen} />
     </Tab.Navigator>
   );

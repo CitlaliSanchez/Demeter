@@ -1,0 +1,242 @@
+[
+  {
+    "deviceId": "DEV001",
+    "clientId": "CLI001",
+    "name": "Area B - Sensor collection 1",
+    "area": "Area B",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997680Z",
+    "updatedAt": "2025-07-06T23:10:51.997680Z",
+    "values": {
+      "device_id": 1,
+      "water_temp": 33.7,
+      "water_level": 29,
+      "conductivity": 207,
+      "ph": 5.0
+    }
+  },
+  {
+    "deviceId": "DEV002",
+    "clientId": "CLI002",
+    "name": "Area C - Sensor collection 2",
+    "area": "Area C",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997710Z",
+    "updatedAt": "2025-07-06T23:10:51.997710Z",
+    "values": {
+      "device_id": 2,
+      "water_temp": 36.1,
+      "water_level": 32,
+      "conductivity": 365,
+      "ph": 6.3
+    }
+  },
+  {
+    "deviceId": "DEV003",
+    "clientId": "CLI003",
+    "name": "Area A - Sensor collection 3",
+    "area": "Area A",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997723Z",
+    "updatedAt": "2025-07-06T23:10:51.997723Z",
+    "values": {
+      "device_id": 3,
+      "water_temp": 30.7,
+      "water_level": 72,
+      "conductivity": 410,
+      "ph": 8.0
+    }
+  },
+  {
+    "deviceId": "DEV004",
+    "clientId": "CLI004",
+    "name": "Area B - Sensor collection 4",
+    "area": "Area B",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997731Z",
+    "updatedAt": "2025-07-06T23:10:51.997731Z",
+    "values": {
+      "device_id": 4,
+      "water_temp": 30.4,
+      "water_level": 16,
+      "conductivity": 559,
+      "ph": 8.4
+    }
+  },
+  {
+    "deviceId": "DEV005",
+    "clientId": "CLI005",
+    "name": "Area C - Sensor collection 5",
+    "area": "Area C",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997737Z",
+    "updatedAt": "2025-07-06T23:10:51.997737Z",
+    "values": {
+      "device_id": 5,
+      "water_temp": 34.0,
+      "water_level": 127,
+      "conductivity": 494,
+      "ph": 5.8
+    }
+  },
+  {
+    "deviceId": "DEV006",
+    "clientId": "CLI006",
+    "name": "Area A - Sensor collection 6",
+    "area": "Area A",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997744Z",
+    "updatedAt": "2025-07-06T23:10:51.997744Z",
+    "values": {
+      "device_id": 6,
+      "water_temp": 22.9,
+      "water_level": 79,
+      "conductivity": 338,
+      "ph": 5.9
+    }
+  },
+  {
+    "deviceId": "DEV007",
+    "clientId": "CLI007",
+    "name": "Area B - Sensor collection 7",
+    "area": "Area B",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997751Z",
+    "updatedAt": "2025-07-06T23:10:51.997751Z",
+    "values": {
+      "device_id": 7,
+      "water_temp": 26.0,
+      "water_level": 66,
+      "conductivity": 576,
+      "ph": 5.8
+    }
+  },
+  {
+    "deviceId": "DEV008",
+    "clientId": "CLI008",
+    "name": "Area C - Sensor collection 8",
+    "area": "Area C",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997760Z",
+    "updatedAt": "2025-07-06T23:10:51.997760Z",
+    "values": {
+      "device_id": 8,
+      "water_temp": 33.7,
+      "water_level": 41,
+      "conductivity": 171,
+      "ph": 5.1
+    }
+  },
+  {
+    "deviceId": "DEV009",
+    "clientId": "CLI009",
+    "name": "Area A - Sensor collection 9",
+    "area": "Area A",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997769Z",
+    "updatedAt": "2025-07-06T23:10:51.997769Z",
+    "values": {
+      "device_id": 9,
+      "water_temp": 30.0,
+      "water_level": 37,
+      "conductivity": 659,
+      "ph": 4.9
+    }
+  },
+  {
+    "deviceId": "DEV010",
+    "clientId": "CLI010",
+    "name": "Area B - Sensor collection 10",
+    "area": "Area B",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997776Z",
+    "updatedAt": "2025-07-06T23:10:51.997776Z",
+    "values": {
+      "device_id": 10,
+      "water_temp": 44.3,
+      "water_level": 72,
+      "conductivity": 588,
+      "ph": 7.5
+    }
+  },
+  {
+    "deviceId": "DEV011",
+    "clientId": "CLI011",
+    "name": "Area C - Sensor collection 11",
+    "area": "Area C",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997782Z",
+    "updatedAt": "2025-07-06T23:10:51.997782Z",
+    "values": {
+      "device_id": 11,
+      "water_temp": 35.3,
+      "water_level": 62,
+      "conductivity": 192,
+      "ph": 5.8
+    }
+  },
+  {
+    "deviceId": "DEV012",
+    "clientId": "CLI012",
+    "name": "Area A - Sensor collection 12",
+    "area": "Area A",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997787Z",
+    "updatedAt": "2025-07-06T23:10:51.997787Z",
+    "values": {
+      "device_id": 12,
+      "water_temp": 23.4,
+      "water_level": 131,
+      "conductivity": 392,
+      "ph": 7.3
+    }
+  },
+  {
+    "deviceId": "DEV013",
+    "clientId": "CLI013",
+    "name": "Area B - Sensor collection 13",
+    "area": "Area B",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997793Z",
+    "updatedAt": "2025-07-06T23:10:51.997793Z",
+    "values": {
+      "device_id": 13,
+      "water_temp": 26.9,
+      "water_level": 101,
+      "conductivity": 647,
+      "ph": 5.9
+    }
+  },
+  {
+    "deviceId": "DEV014",
+    "clientId": "CLI014",
+    "name": "Area C - Sensor collection 14",
+    "area": "Area C",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997799Z",
+    "updatedAt": "2025-07-06T23:10:51.997799Z",
+    "values": {
+      "device_id": 14,
+      "water_temp": 32.1,
+      "water_level": 29,
+      "conductivity": 408,
+      "ph": 4.5
+    }
+  },
+  {
+    "deviceId": "DEV015",
+    "clientId": "CLI015",
+    "name": "Area A - Sensor collection 15",
+    "area": "Area A",
+    "status": "active",
+    "createdAt": "2025-07-06T23:10:51.997806Z",
+    "updatedAt": "2025-07-06T23:10:51.997806Z",
+    "values": {
+      "device_id": 15,
+      "water_temp": 41.6,
+      "water_level": 27,
+      "conductivity": 294,
+      "ph": 5.1
+    }
+  }
+]

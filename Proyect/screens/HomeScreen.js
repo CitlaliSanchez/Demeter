@@ -86,7 +86,7 @@ export default function HomeScreen() {
     }, 60000);
 
     const scheduleAlert = () => {
-      const time = Math.floor(Math.random() * (30000 - 12000) + 12000);
+      const time = Math.floor(Math.random() * (300000 - 120000) + 120000);
       setTimeout(() => {
         const newMessage = generateRandomMessage();
         setMessage(newMessage);
@@ -133,7 +133,7 @@ export default function HomeScreen() {
     Animated.timing(animatedValues[index], {
       toValue: 1,
       duration: 500,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   };
 

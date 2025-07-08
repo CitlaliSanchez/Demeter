@@ -17,7 +17,7 @@ export default function AlertEmergente({ visible, onClose, mensaje }) {
         <View style={styles.modal}>
           {/* Main logo */}
           <Image
-            source={require('../assets/logo.png')}
+            source={require('../assets/logodemujer.png')}
             style={styles.logo}
           />
           {/* Additional image (dimitri-06.png) */}
