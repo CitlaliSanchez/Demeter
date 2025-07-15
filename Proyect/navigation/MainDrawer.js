@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import MainTabs from './MainTabs';
 import HistoryScreen from '../screens/HistoryScreen';
 import MyReportsScreen from '../screens/myreportScreen';
+import HistorySolutions from '../screens/HistorySolutions';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 
 const Drawer = createDrawerNavigator();
@@ -67,6 +68,11 @@ export default function MainDrawer() {
         component={MyReportsScreen}
         options={{ drawerLabel: 'My PDF Reports' }}
       />
+      <Drawer.Screen
+        name="Solutions History"
+        component={HistorySolutions}
+        options={{ drawerLabel: 'Solutions Record' }}
+/>
     </Drawer.Navigator>
   );
 }
