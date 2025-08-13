@@ -12,7 +12,9 @@ import MainTabs from './MainTabs';
 import HistoryScreen from '../screens/HistoryScreen';
 import MyReportsScreen from '../screens/myreportScreen';
 import HistorySolutions from '../screens/HistorySolutions';
+import ChatScreen from '../screens/ChatScreen';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
+import ChartsScreen from '../screens/ChartsScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -72,6 +74,11 @@ export default function MainDrawer() {
         name="Solutions History"
         component={HistorySolutions}
         options={{ drawerLabel: 'Solutions Record' }}
+/>
+      <Drawer.Screen
+      name="Chat with the Admin"
+      component={ChatScreen}
+      options={{draweLabel:'Talk with the admin'}}
 />
     </Drawer.Navigator>
   );

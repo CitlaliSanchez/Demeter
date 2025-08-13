@@ -32,7 +32,6 @@ export default function HomeScreen() {
     'pH out of range detected!',
     'Critical water level!',
     'Temperature too high!',
-    'Unexpected EC level!',
   ];
 
   const generateRandomMessage = () => {
@@ -56,16 +55,29 @@ export default function HomeScreen() {
   const generateReadings = () => {
     const areas = ['Area A', 'Area B', 'Area C'];
     let simulated = [];
+    
     for (let a = 0; a < 3; a++) {
       for (let i = 0; i < 5; i++) {
-        const ph = (5 + Math.random() * 3).toFixed(2);
+        const hasAnomaly = Math.random() < 0.1;
+        
+        const ph = hasAnomaly 
+          ? (Math.random() < 0.5 ? (4 + Math.random() * 1.5) : (7 + Math.random() * 1.5)).toFixed(2)
+          : (5.5 + Math.random() * 1.5).toFixed(2);
+          
+        const temp = hasAnomaly 
+          ? (28 + Math.random() * 5).toFixed(1)
+          : (22 + Math.random() * 5).toFixed(1);
+          
+        const level = hasAnomaly 
+          ? `${Math.floor(Math.random() * 20)}%`
+          : `${20 + Math.floor(Math.random() * 80)}%`;
+
         simulated.push({
           id: `${a}-${i}`,
-          timestamp: new Date(Date.now() - (i + a * 5) * 60000).toLocaleTimeString(),
+          timestamp: new Date(Date.now() - (i + a * 5) * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           ph,
-          ec: (1 + Math.random() * 2).toFixed(2),
-          temp: (22 + Math.random() * 5).toFixed(1),
-          level: `${Math.floor(Math.random() * 100)}%`,
+          temp,
+          level,
           area: areas[a],
         });
       }
@@ -86,7 +98,7 @@ export default function HomeScreen() {
     }, 60000);
 
     const scheduleAlert = () => {
-      const time = Math.floor(Math.random() * (300000 - 120000) + 120000);
+      const time = 300000; // 5 minutos en milisegundos
       setTimeout(() => {
         const newMessage = generateRandomMessage();
         setMessage(newMessage);
@@ -110,7 +122,6 @@ export default function HomeScreen() {
         setFilteredReadings(data.filter(item => 
           parseFloat(item.ph) < 5.5 ||
           parseFloat(item.ph) > 7.0 ||
-          parseFloat(item.ec) > 2.5 ||
           parseFloat(item.temp) > 28 ||
           parseInt(item.level) < 20
         ));
@@ -144,44 +155,66 @@ export default function HomeScreen() {
     const isAnomaly =
       parseFloat(item.ph) < 5.5 ||
       parseFloat(item.ph) > 7.0 ||
-      parseFloat(item.ec) > 2.5 ||
       parseFloat(item.temp) > 28 ||
       parseInt(item.level) < 20;
+
+    const getValueStyle = (value, thresholds) => {
+      if ((thresholds.low !== undefined && value < thresholds.low) || 
+          (thresholds.high !== undefined && value > thresholds.high)) {
+        return { color: colors.danger, fontFamily: fonts.semiBold };
+      }
+      return { color: colors.forest, fontFamily: fonts.medium };
+    };
 
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
         <View style={[styles.card, isAnomaly && styles.cardAnomaly]}>
           <View style={styles.cardHeader}>
-            <Text style={styles.areaText}>{item.area}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons 
+                name="leaf" 
+                size={18} 
+                color={colors.olive} 
+                style={{ marginRight: 8 }} 
+              />
+              <Text style={styles.areaText}>{item.area}</Text>
+            </View>
             <Text style={styles.timestamp}>{item.timestamp}</Text>
           </View>
           
           <View style={styles.metricsContainer}>
             <View style={styles.metricItem}>
-              <Ionicons name="water" size={16} color={colors.forest} />
-              <Text style={styles.label}>pH: <Text style={styles.value}>{item.ph}</Text></Text>
+              <Ionicons name="water" size={18} color={colors.fern} />
+              <Text style={styles.label}>pH: 
+                <Text style={getValueStyle(parseFloat(item.ph), { low: 5.5, high: 7.0 })}>
+                  {' '}{item.ph}
+                </Text>
+              </Text>
             </View>
             
             <View style={styles.metricItem}>
-              <Ionicons name="flash" size={16} color={colors.forest} />
-              <Text style={styles.label}>EC: <Text style={styles.value}>{item.ec}</Text></Text>
+              <Ionicons name="thermometer" size={18} color={colors.clay} />
+              <Text style={styles.label}>Temp: 
+                <Text style={getValueStyle(parseFloat(item.temp), { high: 28 })}>
+                  {' '}{item.temp}°C
+                </Text>
+              </Text>
             </View>
             
             <View style={styles.metricItem}>
-              <Ionicons name="thermometer" size={16} color={colors.forest} />
-              <Text style={styles.label}>Temp: <Text style={styles.value}>{item.temp}°C</Text></Text>
-            </View>
-            
-            <View style={styles.metricItem}>
-              <Ionicons name="speedometer" size={16} color={colors.forest} />
-              <Text style={styles.label}>Level: <Text style={styles.value}>{item.level}</Text></Text>
+              <Ionicons name="speedometer" size={18} color={colors.forest} />
+              <Text style={styles.label}>Level: 
+                <Text style={getValueStyle(parseInt(item.level), { low: 20 })}>
+                  {' '}{item.level}
+                </Text>
+              </Text>
             </View>
           </View>
           
           {isAnomaly && (
             <View style={styles.alertBadge}>
-              <Ionicons name="warning" size={14} color={colors.danger} />
-              <Text style={styles.alertText}>Attention needed</Text>
+              <Ionicons name="warning" size={16} color={colors.danger} />
+              <Text style={[styles.alertText, { marginLeft: 8 }]}>Attention needed</Text>
             </View>
           )}
         </View>
@@ -191,7 +224,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.light} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
       
       <ImageBackground
         source={require('../assets/banner.jpg')}
@@ -228,7 +261,6 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Modal de Filtro */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -316,39 +348,33 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.light,
+    backgroundColor: '#F5F5F5',
   },
   banner: {
     width: '100%',
-    height: 160,
+    height: 180,
     justifyContent: 'flex-end',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    overflow: 'hidden',
   },
   bannerImage: {
     resizeMode: 'cover',
-    borderRadius: 0,
-  },
-  bannerContent: {
-    padding: 20,
-  },
-  bannerTitle: {
-    fontSize: fontSizes.xl + 6,
-    color: colors.white,
-    fontFamily: fonts.bold,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
   },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     backgroundColor: colors.white,
+    marginHorizontal: 15,
+    marginTop: 15,
+    borderRadius: 12,
     shadowColor: colors.dark,
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
   },
   statusIndicator: {
     width: 10,
@@ -366,23 +392,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: colors.light,
+    paddingVertical: 18,
+    backgroundColor: 'transparent',
   },
   sectionTitle: {
-    fontSize: fontSizes.lg,
+    fontSize: fontSizes.lg + 2,
     fontFamily: fonts.semiBold,
     color: colors.forest,
+    letterSpacing: 0.5,
   },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 15,
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.lightGray,
+    borderColor: colors.border,
+    shadowColor: colors.dark,
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
   },
   filterText: {
     fontSize: fontSizes.sm,
@@ -392,31 +424,37 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 15,
     paddingBottom: 30,
+    paddingTop: 5,
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 15,
+    marginHorizontal: 15,
     shadowColor: colors.dark,
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 3 },
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   cardAnomaly: {
-    backgroundColor: '#FFF0F0',
-    borderLeftWidth: 4,
+    backgroundColor: '#FFF5F5',
+    borderLeftWidth: 5,
     borderLeftColor: colors.danger,
+    borderWidth: 1,
+    borderColor: '#FFE0E0',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingBottom: 8,
+    marginBottom: 14,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: colors.lightGray,
+    borderBottomColor: colors.border,
   },
   areaText: {
     fontSize: fontSizes.md,
@@ -437,7 +475,10 @@ const styles = StyleSheet.create({
     width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#FAFAFA',
   },
   label: {
     fontFamily: fonts.medium,
@@ -445,25 +486,20 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginLeft: 8,
   },
-  value: {
-    fontFamily: fonts.semiBold,
-    color: colors.forest,
-  },
   alertBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors.lightGray,
+    marginTop: 10,
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: '#FFEEEE',
+    justifyContent: 'center',
   },
   alertText: {
     fontFamily: fonts.medium,
-    fontSize: fontSizes.sm - 1,
+    fontSize: fontSizes.sm,
     color: colors.danger,
-    marginLeft: 6,
   },
-  // Estilos del modal de filtro
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -471,10 +507,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    width: '80%',
+    width: '85%',
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 16,
+    padding: 25,
     shadowColor: colors.dark,
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 4 },
@@ -492,16 +528,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    marginBottom: 8,
-    borderRadius: 8,
-    backgroundColor: colors.lightGray,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginBottom: 10,
+    borderRadius: 10,
+    backgroundColor: '#F5F5F5',
   },
   activeFilter: {
-    backgroundColor: '#E8F5E9',
-    borderWidth: 1,
-    borderColor: colors.forest,
+    backgroundColor: '#EDF5EE',
+    borderWidth: 1.5,
+    borderColor: colors.fern,
   },
   filterOptionText: {
     fontSize: fontSizes.md,
@@ -511,7 +547,7 @@ const styles = StyleSheet.create({
   closeButton: {
     marginTop: 15,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     backgroundColor: colors.forest,
     alignItems: 'center',
   },

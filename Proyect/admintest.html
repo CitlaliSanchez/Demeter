@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Chat Nakama</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      background-color: #F9FAFB;
+      color: #111827;
+      display: flex;
+      height: 100vh;
+      line-height: 1.5;
+    }
+    
+    /* Sidebar mejorado */
+    .sidebar {
+      width: 380px;
+      background-color: #FFFFFF;
+      color: #111827;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      border-right: 1px solid #E5E7EB;
+      box-shadow: 1px 0 8px rgba(0, 0, 0, 0.03);
+    }
+    
+    .sidebar-header {
+      padding: 20px 24px;
+      background-color: #5DBB63;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .sidebar-header h2 {
+      font-size: 1.25rem;
+      margin-bottom: 4px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    
+    .sidebar-header p {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+    
+    .search-bar {
+      padding: 16px 24px;
+      background-color: #FFFFFF;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 10px 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      background-color: #F9FAFB;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    
+    .search-input:focus {
+      border-color: #5DBB63;
+      box-shadow: 0 0 0 3px rgba(93, 187, 99, 0.2);
+    }
+    
+    .farmer-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .farmer-item {
+      display: flex;
+      align-items: center;
+      padding: 16px 24px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border-bottom: 1px solid #F3F4F6;
+      position: relative;
+    }
+    
+    .farmer-item:hover {
+      background-color: #F9FAFB;
+    }
+    
+    .farmer-item.active {
+      background-color: #F0FDF4;
+      border-left: 3px solid #5DBB63;
+    }
+    
+    .farmer-item.unread::after {
+      content: '';
+      position: absolute;
+      right: 24px;
+      width: 8px;
+      height: 8px;
+      background-color: #5DBB63;
+      border-radius: 50%;
+    }
+    
+    .farmer-avatar {
+      width: 44px;
+      height: 44px;
+      background-color: #5DBB63;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      font-weight: 500;
+      font-size: 1.1rem;
+      color: white;
+      flex-shrink: 0;
+    }
+    
+    .farmer-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .farmer-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .farmer-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+    
+    .farmer-last-message {
+      color: #6B7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+    
+    .farmer-time {
+      color: #8C5F37;
+      font-size: 0.75rem;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+    
+    /* Chat area mejorada */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: #F3F4F6;
+      position: relative;
+    }
+    
+    .chat-header {
+      background-color: #FFFFFF;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #E5E7EB;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      z-index: 10;
+    }
+    
+    .chat-header-avatar {
+      width: 40px;
+      height: 40px;
+      background-color: #5DBB63;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      color: white;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    
+    .chat-header-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .chat-header h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .chat-header p {
+      font-size: 0.8rem;
+      color: #6B7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .messages-container {
+      flex: 1;
+      padding: 20px 20% 10px 20%;
+      overflow-y: auto;
+      background-color: #E5E7EB;
+      background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%235DBB63' fill-opacity='0.05'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10zm10 8c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm40 40c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    
+    .message {
+      margin-bottom: 16px;
+      max-width: 70%;
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.5;
+      position: relative;
+      word-wrap: break-word;
+      font-size: 0.95rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .admin-message {
+      margin-left: auto;
+    }
+    
+    .admin-message .message-bubble {
+      background-color: #5DBB63;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .admin-message .message-time {
+      color: rgba(255, 255, 255, 0.7);
+      text-align: right;
+      display: block;
+      font-size: 0.7rem;
+      margin-top: 4px;
+    }
+    
+    .farmer-message {
+      margin-right: auto;
+    }
+    
+    .farmer-message .message-bubble {
+      background-color: #FFFFFF;
+      border-bottom-left-radius: 4px;
+      color: #111827;
+      border: 1px solid #E5E7EB;
+    }
+    
+    .farmer-message .message-time {
+      color: rgba(0, 0, 0, 0.5);
+      text-align: left;
+      display: block;
+      font-size: 0.7rem;
+      margin-top: 4px;
+    }
+    
+    .input-area {
+      background-color: #FFFFFF;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      border-top: 1px solid #E5E7EB;
+      box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.03);
+      z-index: 10;
+    }
+    
+    .message-input {
+      flex: 1;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 12px 16px;
+      resize: none;
+      outline: none;
+      min-height: 48px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 0.95rem;
+      background-color: #F9FAFB;
+      transition: all 0.2s;
+    }
+    
+    .message-input:focus {
+      border-color: #5DBB63;
+      box-shadow: 0 0 0 3px rgba(93, 187, 99, 0.2);
+      background-color: #FFFFFF;
+    }
+    
+    .send-button {
+      background-color: #5DBB63;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      width: 48px;
+      height: 48px;
+      margin-left: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    
+    .send-button:hover {
+      background-color: #4CAF50;
+    }
+    
+    .send-button:disabled {
+      background-color: #9CA3AF;
+      cursor: not-allowed;
+    }
+    
+    .send-button i {
+      font-size: 1.1rem;
+    }
+    
+    /* Empty state mejorado */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: #6B7280;
+    }
+    
+    .empty-state i {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+      color: #D1D5DB;
+    }
+    
+    .empty-state p {
+      font-size: 0.95rem;
+      max-width: 300px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(2px);
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(93, 187, 99, 0.1);
+      border-top: 4px solid #5DBB63;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Error display mejorado */
+    .error-display {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #A52019;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.3s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+    
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Notificación de nuevo mensaje */
+    .new-message-notification {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #5DBB63;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      display: none;
+      animation: fadeInUp 0.3s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from { 
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Chat con Agricultores</h2>
+      <p>Administra tus conversaciones</p>
+    </div>
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="Buscar agricultor...">
+    </div>
+    <ul class="farmer-list" id="farmerList"></ul>
+  </div>
+  
+  <!-- Chat area -->
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="chat-header-avatar" id="currentFarmerAvatar"></div>
+      <div class="chat-header-info">
+        <h2 id="chatTitle">Selecciona un agricultor</h2>
+        <p id="chatStatus">Sin conexión</p>
+      </div>
+    </div>
+    
+    <div class="messages-container" id="messages"></div>
+    
+    <div class="input-area">
+      <textarea class="message-input" id="messageInput" placeholder="Escribe un mensaje..." rows="1"></textarea>
+      <button class="send-button" id="sendButton" disabled>
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Error display -->
+  <div class="error-display" id="errorDisplay"></div>
+  
+  <!-- Notificación de nuevo mensaje -->
+  <div class="new-message-notification" id="newMessageNotification">
+    Nuevo mensaje recibido
+  </div>
+
+<script type="module">
+  // Elementos del DOM
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const farmerListEl = document.getElementById('farmerList');
+  const messagesEl = document.getElementById('messages');
+  const messageInput = document.getElementById('messageInput');
+  const sendButton = document.getElementById('sendButton');
+  const chatTitle = document.getElementById('chatTitle');
+  const chatStatus = document.getElementById('chatStatus');
+  const currentFarmerAvatar = document.getElementById('currentFarmerAvatar');
+  const errorDisplay = document.getElementById('errorDisplay');
+  const newMessageNotification = document.getElementById('newMessageNotification');
+  const searchInput = document.querySelector('.search-input');
+
+  // Estado de la aplicación
+  let farmers = [];
+  let currentFarmer = null;
+  let currentChannel = null;
+  let unreadMessages = {};
+  let lastMessageTimestamps = {};
+  let isScrolledUp = false;
+  let newMessagesBelow = false;
+
+  // Mostrar estado de carga
+  function showLoading() {
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+  }
+
+  // Ocultar estado de carga
+  function hideLoading() {
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+  }
+
+  // Mostrar errores
+  function showError(message) {
+    if (errorDisplay) {
+      errorDisplay.textContent = message;
+      errorDisplay.style.display = 'block';
+      setTimeout(() => {
+        errorDisplay.style.display = 'none';
+      }, 5000);
+    }
+    console.error(message);
+  }
+
+  // Mostrar notificación de nuevo mensaje
+  function showNewMessageNotification() {
+    if (newMessageNotification) {
+      newMessageNotification.style.display = 'block';
+      setTimeout(() => {
+        newMessageNotification.style.display = 'none';
+      }, 3000);
+    }
+  }
+
+  try {
+    // Importaciones con manejo de errores
+    showLoading();
+    const [{ createClient }, { v5: uuidv5 }] = await Promise.all([
+      import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'),
+      import('https://cdn.skypack.dev/uuid')
+    ]).catch(error => {
+      showError('Error cargando dependencias: ' + error.message);
+      throw error;
+    });
+
+    // Configuración de Supabase
+    const supabaseUrl = 'https://nylcukcxkmiaduscpubv.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55bGN1a2N4a21pYWR1c2NwdWJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzNzk2MzQsImV4cCI6MjA2Njk1NTYzNH0.YjwgBxRSf715u0XWnn_GQIZQaJpcZ4cU_I9RzJrqFts';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const ADMIN_ID = '17974600-c80a-48dd-b8de-4f4529013409';
+    const UUID_NAMESPACE = '1b671a64-40d5-491e-99b0-da01ff1f3341';
+
+    // Datos iniciales de agricultores
+    farmers = [
+      {
+        email: 'dayanabernalgome@gmail.com',
+        firebase_uid: 'Gt4uWx8OtwT6MJy3Vr1TkNycwIh1',
+        effective_uid: 'Gt4uWx8OtwT6MJy3Vr1TkNycwIh1',
+        last_message: '',
+        last_message_time: null
+      },
+      {
+        email: 'cardenasalgandar.anapaula@gmail.com',
+        firebase_uid: 'WlWM2Wjd80e8QrYGpUwxDLcvAnG3',
+        effective_uid: 'WlWM2Wjd80e8QrYGpUwxDLcvAnG3',
+        last_message: '',
+        last_message_time: null
+      },
+      {
+        email: 'saraiestrella388@gmail.com',
+        firebase_uid: 'KZHekR3KS0VnMQyNjuA0g1B4v6G2',
+        effective_uid: 'KZHekR3KS0VnMQyNjuA0g1B4v6G2',
+        last_message: '',
+        last_message_time: null
+      }
+    ];
+
+    // Inicializar estado de mensajes no leídos
+    farmers.forEach(farmer => {
+      unreadMessages[farmer.effective_uid] = 0;
+      lastMessageTimestamps[farmer.effective_uid] = null;
+    });
+
+    // Función para generar UUID consistente
+    function firebaseToUUID(firebaseId) {
+      try {
+        return uuidv5(firebaseId, UUID_NAMESPACE);
+      } catch (error) {
+        showError('Error generando UUID: ' + error.message);
+        return firebaseId; // Fallback al ID original
+      }
+    }
+
+    // Cargar lista de agricultores con sus últimos mensajes
+    async function loadFarmers() {
+      showLoading();
+      try {
+        // Obtener los últimos mensajes para cada agricultor
+        const farmersWithMessages = await Promise.all(farmers.map(async farmer => {
+          const convertedUID = firebaseToUUID(farmer.effective_uid);
+          
+          const { data, error } = await supabase
+            .from('messages')
+            .select('*')
+            .or(
+              `and(sender_id.eq.${convertedUID},receiver_id.eq.${ADMIN_ID}),and(sender_id.eq.${ADMIN_ID},receiver_id.eq.${convertedUID})`
+            )
+            .order('sent_at', { ascending: false })
+            .limit(1);
+
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            farmer.last_message = data[0].message.length > 30 
+              ? data[0].message.substring(0, 30) + '...' 
+              : data[0].message;
+            farmer.last_message_time = new Date(data[0].sent_at);
+            lastMessageTimestamps[farmer.effective_uid] = data[0].sent_at;
+          }
+
+          return farmer;
+        }));
+
+        // Ordenar agricultores por el más reciente
+        farmersWithMessages.sort((a, b) => {
+          if (!a.last_message_time && !b.last_message_time) return 0;
+          if (!a.last_message_time) return 1;
+          if (!b.last_message_time) return -1;
+          return new Date(b.last_message_time) - new Date(a.last_message_time);
+        });
+
+        renderFarmerList(farmersWithMessages);
+        
+        // Seleccionar el primer agricultor automáticamente
+        if (farmersWithMessages.length > 0) {
+          selectFarmer(farmersWithMessages[0].effective_uid);
+        }
+      } catch (error) {
+        showError('Error cargando agricultores: ' + error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Renderizar lista de agricultores
+    function renderFarmerList(farmersToRender) {
+      if (!farmerListEl) {
+        showError('No se encontró el elemento farmerList');
+        return;
+      }
+      
+      farmerListEl.innerHTML = '';
+      
+      farmersToRender.forEach(farmer => {
+        const farmerItem = document.createElement('li');
+        farmerItem.className = `farmer-item ${currentFarmer === farmer.effective_uid ? 'active' : ''} ${unreadMessages[farmer.effective_uid] > 0 ? 'unread' : ''}`;
+        
+        farmerItem.innerHTML = `
+          <div class="farmer-avatar">
+            ${farmer.email.charAt(0).toUpperCase()}
+          </div>
+          <div class="farmer-info">
+            <div class="farmer-name">${farmer.email}</div>
+            <div class="farmer-meta">
+              <span class="farmer-last-message">${farmer.last_message || 'No hay mensajes'}</span>
+              ${farmer.last_message_time ? `<span class="farmer-time">${formatTime(farmer.last_message_time)}</span>` : ''}
+            </div>
+          </div>
+        `;
+        
+        farmerItem.addEventListener('click', () => selectFarmer(farmer.effective_uid));
+        farmerListEl.appendChild(farmerItem);
+      });
+    }
+
+    // Formatear hora
+    function formatTime(date) {
+      if (!date) return '';
+      const now = new Date();
+      const messageDate = new Date(date);
+      
+      if (now.toDateString() === messageDate.toDateString()) {
+        return messageDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      } else if (now.getTime() - messageDate.getTime() < 7 * 24 * 60 * 60 * 1000) {
+        return messageDate.toLocaleDateString('es-ES', { weekday: 'short' });
+      } else {
+        return messageDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      }
+    }
+
+    // Seleccionar agricultor
+    async function selectFarmer(farmerUID) {
+      if (!farmerUID) return;
+
+      showLoading();
+      try {
+        currentFarmer = farmerUID;
+        const farmer = farmers.find(f => f.effective_uid === farmerUID);
+        
+        if (!farmer) {
+          showError('Agricultor no encontrado');
+          return;
+        }
+        
+        // Actualizar UI
+        if (chatTitle) chatTitle.textContent = farmer.email;
+        if (currentFarmerAvatar) {
+          currentFarmerAvatar.textContent = farmer.email.charAt(0).toUpperCase();
+        }
+        
+        // Marcar mensajes como leídos
+        unreadMessages[farmerUID] = 0;
+        
+        renderFarmerList(farmers);
+        
+        // Cargar y configurar mensajes
+        await loadMessages(farmerUID);
+        setupRealtime(farmerUID);
+        
+        // Habilitar input
+        if (sendButton) sendButton.disabled = false;
+        if (chatStatus) chatStatus.textContent = 'En línea';
+      } catch (error) {
+        showError('Error seleccionando agricultor: ' + error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Cargar mensajes
+    async function loadMessages(farmerUID) {
+      if (!messagesEl) {
+        showError('No se encontró el contenedor de mensajes');
+        return;
+      }
+
+      try {
+        const convertedUID = firebaseToUUID(farmerUID);
+        
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*')
+          .or(
+            `and(sender_id.eq.${convertedUID},receiver_id.eq.${ADMIN_ID}),and(sender_id.eq.${ADMIN_ID},receiver_id.eq.${convertedUID})`
+          )
+          .order('sent_at', { ascending: true });
+
+        if (error) throw error;
+
+        renderMessages(data || []);
+        
+        // Actualizar último timestamp conocido
+        if (data && data.length > 0) {
+          lastMessageTimestamps[farmerUID] = data[data.length - 1].sent_at;
+        }
+      } catch (error) {
+        showError('Error cargando mensajes: ' + error.message);
+        messagesEl.innerHTML = '<div class="empty-state"><i class="fas fa-comment-slash"></i><p>Error al cargar mensajes</p></div>';
+      }
+    }
+
+    // Renderizar mensajes
+    function renderMessages(messages) {
+      messagesEl.innerHTML = '';
+      
+      if (messages.length === 0) {
+        messagesEl.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-comment-slash"></i>
+            <p>No hay mensajes aún</p>
+            <p>Envía un mensaje para iniciar la conversación</p>
+          </div>`;
+        return;
+      }
+
+      messages.forEach(msg => {
+        const isAdmin = msg.sender_id === ADMIN_ID;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isAdmin ? 'admin-message' : 'farmer-message'}`;
+        
+        messageDiv.innerHTML = `
+          <div class="message-bubble">
+            ${msg.message}
+            <span class="message-time">${formatTime(msg.sent_at)}</span>
+          </div>
+        `;
+        
+        messagesEl.appendChild(messageDiv);
+      });
+
+      scrollToBottom();
+    }
+
+    // Scroll al final del chat
+    function scrollToBottom() {
+      if (messagesEl) {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        isScrolledUp = false;
+        newMessagesBelow = false;
+      }
+    }
+
+    // Configurar escucha en tiempo real
+    function setupRealtime(farmerUID) {
+      try {
+        if (currentChannel) {
+          supabase.removeChannel(currentChannel);
+        }
+
+        const convertedUID = firebaseToUUID(farmerUID);
+        currentChannel = supabase.channel(`admin_chat:${ADMIN_ID}:${convertedUID}`)
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `or(and(sender_id.eq.${convertedUID},receiver_id.eq.${ADMIN_ID}),and(sender_id.eq.${ADMIN_ID},receiver_id.eq.${convertedUID})`
+          }, (payload) => {
+            const newMessage = payload.new;
+            const isCurrentFarmer = currentFarmer === farmerUID;
+            
+            // Verificar si el mensaje es nuevo (mayor que el último timestamp conocido)
+            const isNewMessage = !lastMessageTimestamps[farmerUID] || 
+              new Date(newMessage.sent_at) > new Date(lastMessageTimestamps[farmerUID]);
+            
+            if (isNewMessage) {
+              // Actualizar último timestamp
+              lastMessageTimestamps[farmerUID] = newMessage.sent_at;
+              
+              // Actualizar lista de agricultores
+              updateFarmerLastMessage(farmerUID, newMessage);
+              
+              if (isCurrentFarmer) {
+                // Si estamos en el chat actual, mostrar el mensaje
+                const isEmpty = messagesEl.querySelector('.empty-state');
+                if (isEmpty) messagesEl.innerHTML = '';
+                
+                const isAdmin = newMessage.sender_id === ADMIN_ID;
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isAdmin ? 'admin-message' : 'farmer-message'}`;
+                
+                messageDiv.innerHTML = `
+                  <div class="message-bubble">
+                    ${newMessage.message}
+                    <span class="message-time">${formatTime(newMessage.sent_at)}</span>
+                  </div>
+                `;
+                
+                messagesEl.appendChild(messageDiv);
+                
+                // Scroll automático solo si no está scrolleado hacia arriba
+                if (!isScrolledUp) {
+                  scrollToBottom();
+                } else {
+                  newMessagesBelow = true;
+                }
+              } else {
+                // Si no estamos en el chat, incrementar contador de no leídos
+                unreadMessages[farmerUID] = (unreadMessages[farmerUID] || 0) + 1;
+                renderFarmerList(farmers);
+                showNewMessageNotification();
+              }
+            }
+          })
+          .subscribe((status, err) => {
+            if (err) {
+              showError('Error en suscripción realtime: ' + err.message);
+              if (chatStatus) chatStatus.textContent = 'Sin conexión';
+            } else {
+              if (chatStatus) chatStatus.textContent = 'En línea';
+            }
+          });
+      } catch (error) {
+        showError('Error configurando realtime: ' + error.message);
+      }
+    }
+
+    // Actualizar último mensaje del agricultor
+    function updateFarmerLastMessage(farmerUID, message) {
+      const farmer = farmers.find(f => f.effective_uid === farmerUID);
+      if (farmer) {
+        farmer.last_message = message.message.length > 30 
+          ? message.message.substring(0, 30) + '...' 
+          : message.message;
+        farmer.last_message_time = new Date(message.sent_at);
+        
+        // Reordenar agricultores por el más reciente
+        farmers.sort((a, b) => {
+          if (!a.last_message_time && !b.last_message_time) return 0;
+          if (!a.last_message_time) return 1;
+          if (!b.last_message_time) return -1;
+          return new Date(b.last_message_time) - new Date(a.last_message_time);
+        });
+        
+        renderFarmerList(farmers);
+      }
+    }
+
+    // Enviar mensaje
+    async function sendMessage() {
+      if (!currentFarmer || !messageInput?.value.trim()) return;
+      
+      showLoading();
+      try {
+        const convertedUID = firebaseToUUID(currentFarmer);
+        const newMsg = {
+          sender_id: ADMIN_ID,
+          receiver_id: convertedUID,
+          message: messageInput.value.trim(),
+          sent_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase.from('messages').insert([newMsg]);
+        if (error) throw error;
+        
+        messageInput.value = '';
+        
+        // Actualizar el último mensaje en la lista
+        updateFarmerLastMessage(currentFarmer, newMsg);
+      } catch (error) {
+        showError('Error enviando mensaje: ' + error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Detectar scroll para saber si el usuario está viendo mensajes antiguos
+    if (messagesEl) {
+      messagesEl.addEventListener('scroll', () => {
+        const threshold = 100;
+        isScrolledUp = messagesEl.scrollTop + messagesEl.clientHeight < messagesEl.scrollHeight - threshold;
+        
+        // Si el usuario scrollea hasta abajo, ocultar notificación de nuevos mensajes
+        if (!isScrolledUp && newMessagesBelow) {
+          newMessagesBelow = false;
+        }
+      });
+    }
+
+    // Event listeners
+    if (sendButton) {
+      sendButton.onclick = sendMessage;
+    }
+
+    if (messageInput) {
+      messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+      
+      // Autoajustar altura del textarea
+      messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+      });
+    }
+
+    // Búsqueda de agricultores
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredFarmers = farmers.filter(farmer => 
+          farmer.email.toLowerCase().includes(searchTerm) || 
+          (farmer.last_message && farmer.last_message.toLowerCase().includes(searchTerm))
+        );
+        renderFarmerList(filteredFarmers);
+      });
+    }
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFarmers();
+    });
+
+    // Cargar inmediatamente si el DOM ya está listo
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      loadFarmers();
+    } else {
+      document.addEventListener('DOMContentLoaded', loadFarmers);
+    }
+
+  } catch (error) {
+    showError('Error inicializando la aplicación: ' + error.message);
+    hideLoading();
+  }
+</script>
+</body>
+</html>

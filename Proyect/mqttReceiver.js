@@ -12,7 +12,7 @@ const Sensor = mongoose.model('Sensor', SensorSchema);
 const client = mqtt.connect('mqtt://broker.hivemq.com');
 
 client.on('connect', () => {
-  console.log('✅ Conectado al broker MQTT');
+  console.log('Conectado al broker MQTT');
   client.subscribe('demeter/devices/#');
 });
 
@@ -26,5 +26,5 @@ client.on('message', async (topic, message) => {
     { upsert: true }
   );
 
-  console.log(`📡 Datos guardados para ${deviceId}`);
+  console.log(`Datos guardados para ${deviceId}`);
 });

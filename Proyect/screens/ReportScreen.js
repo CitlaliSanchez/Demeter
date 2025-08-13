@@ -10,7 +10,7 @@ import { Buffer } from 'buffer';
 import { getAuth } from 'firebase/auth';
 import { Picker } from '@react-native-picker/picker';
 
-import { generarPDF } from '../utils/pdfGenerador';
+import { generatePDF as generarPDF } from '../utils/pdfGenerador';
 import { supabase } from '../sbClient';
 import { colors, fonts, fontSizes } from '../assets/styles/theme';
 

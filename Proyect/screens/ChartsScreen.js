@@ -187,7 +187,7 @@ const ChartBox = ({ data, labels, color, title, unit, type = 'line', minRange, m
 
 const AreaCharts = ({ area }) => {
   const [timeRange, setTimeRange] = useState('week');
-  const [chartData, setChartData] = useState({ ph: [], ec: [], temp: [], water: [] });
+  const [chartData, setChartData] = useState({ ph: [], temp: [], water: [] });
   const [labels, setLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -196,43 +196,53 @@ const AreaCharts = ({ area }) => {
   const points = isWeekly ? 7 : 30;
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    
-    axios.get(`${config.API_BASE_URL}/api/sensors/area/${area}?points=${points}`)
-      .then(({ data }) => {
-        if (!data || data.length === 0) {
-          setChartData({ ph: [], ec: [], temp: [], water: [] });
-          setLabels([]);
-          setError('No data available');
-          setLoading(false);
-          return;
-        }
-
-        // Simplificamos los labels de los dispositivos
-        const newLabels = data.map((d, index) => {
-          if (d.deviceId && d.deviceId.startsWith('DEV')) {
-            return d.deviceId.replace('DEV', 'D'); // DEV04 -> D4
-          }
-          return `S${index + 1}`; // Si no tiene deviceId, usamos S1, S2, etc.
-        });
-
-        setLabels(newLabels);
-
-        const phArr = data.map(d => d.values?.ph ?? 0);
-        const ecArr = data.map(d => d.values?.conductivity ?? 0);
-        const tempArr = data.map(d => d.values?.water_temp ?? 0);
-        const waterArr = data.map(d => d.values?.water_level ?? 0);
-
-        setChartData({ ph: phArr, ec: ecArr, temp: tempArr, water: waterArr });
+  setLoading(true);
+  setError(null);
+  
+  axios.get(`${config.API_BASE_URL}/api/sensors/area/${area}?points=${points}`)
+    .then(({ data }) => {
+      if (!data || data.length === 0) {
+        setError('No data available');
         setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error loading data from API', err);
-        setError('Failed to load data from server');
-        setLoading(false);
+        return;
+      }
+
+      // Normalizar datos: algunos vienen con `values` y otros no
+      const normalizedData = data.map(item => {
+        return {
+          ...item,
+          ph: item.values?.ph ?? item.ph ?? 0,
+          water_temp: item.values?.water_temp ?? item.water_temp ?? 0,
+          water_level: item.values?.water_level ?? item.water_level ?? 0,
+          date: item.createdAt // Añadimos fecha para los labels
+        };
       });
-  }, [area, timeRange, points]);
+
+      // Ordenar por fecha (más antiguo primero)
+      normalizedData.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // Crear labels con fechas (ej: "Aug 1", "Aug 2")
+      const newLabels = normalizedData.map(d => 
+        new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      );
+
+      setLabels(newLabels);
+
+      // Extraer valores para las gráficas
+      setChartData({
+        ph: normalizedData.map(d => d.ph),
+        temp: normalizedData.map(d => d.water_temp),
+        water: normalizedData.map(d => d.water_level)
+      });
+
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error('Error loading data:', err);
+      setError('Failed to load data. Check connection.');
+      setLoading(false);
+    });
+}, [area, timeRange, points]);
 
   return (
     <ScrollView contentContainerStyle={styles.tabContent}>
@@ -280,16 +290,6 @@ const AreaCharts = ({ area }) => {
             type="line" 
             minRange={5.8} 
             maxRange={6.5} 
-          />
-          <ChartBox 
-            data={chartData.ec} 
-            labels={labels} 
-            color={colors.lime} 
-            title="Conductivity" 
-            unit="dS/m" 
-            type="line" 
-            minRange={1.5} 
-            maxRange={2.0} 
           />
           <ChartBox 
             data={chartData.temp} 
